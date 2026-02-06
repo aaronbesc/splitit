@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { performOCR } from '../../services/ocrService';
+import { parseReceiptJSON } from '../../services/parserService';
 
 export default function ScannerScreen() {
   const [image, setImage] = useState<string | null>(null);
@@ -37,35 +38,44 @@ export default function ScannerScreen() {
   };
 
   const handleProcessReceipt = async () => {
-    if (!image) return;
-    setIsProcessing(true);
-    try {
-      //pre-processing
-      const manipulatedImage = await ImageManipulator.manipulateAsync(
-        image,
-        [{ resize: { width: 1080 } }],  //resizes photos to 1080px width
-        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-      );
+  if (!image) return;
+  setIsProcessing(true);
 
-      console.log("Image optimized for OCR (Dimensions and compression applied)");
+  try {
+    //pre-processing
+    const manipulatedImage = await ImageManipulator.manipulateAsync(
+      image,
+      [{ resize: { width: 1080 } }], //resizes photos to 1080px width
+      { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+    );
 
-      //send image to OCR
-      const rawText = await performOCR(manipulatedImage.uri);
+    console.log("Image optimized for OCR (Dimensions and compression applied)");
 
-      if (rawText) {
-        console.log("!!!OCR SUCCESS!!!");
-        console.log(rawText);
-        Alert.alert("Success", "Raw text printed to terminal.");
-      } else {
-        Alert.alert("OCR Failed", "The API returned no text. Check your terminal logs.");
-      }
-    } catch (error) {
-      console.error("Pipeline Error:", error);
-      Alert.alert("Error", "An error occurred during image processing.");
-    } finally {
-      setIsProcessing(false);
+    //send image to OCR
+    const rawText = await performOCR(manipulatedImage.uri);
+
+    if (rawText) {
+      console.log("!!!OCR SUCCESS!!!");
+      console.log(rawText);
+
+      //parse text into JSON
+      const structuredData = parseReceiptJSON(rawText);
+      console.log("!!!STRUCTURED JSON!!!");
+      console.log(JSON.stringify(structuredData, null, 2));
+
+      Alert.alert("Success", "Structured JSON printed to terminal.");
+
+      //navigation.navigate('Results', { data: structuredData });
+    } else {
+      Alert.alert("OCR Failed", "The API returned no text. Check your terminal logs.");
     }
-  };
+  } catch (error) {
+    console.error("Pipeline Error:", error);
+    Alert.alert("Error", "An error occurred during image processing.");
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   return (
     <View style={styles.container}>
