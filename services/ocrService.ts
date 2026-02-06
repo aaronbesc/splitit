@@ -7,9 +7,12 @@ export const performOCR = async (imageUri: string) => {
       name: 'receipt.jpg',
     } as any);
 
-    //API key from OCR.space
-    formData.append('apikey', 'helloworld');
+    formData.append('apikey', process.env.EXPO_PUBLIC_OCR_API_KEY || '');
     formData.append('isOverlayRequired', 'false');
+
+    //setting for receipt processing
+    formData.append('isTable', 'true');
+    formData.append('OCREngine', '2');
 
     const response = await fetch('https://api.ocr.space/parse/image', {
       method: 'POST',
@@ -17,11 +20,7 @@ export const performOCR = async (imageUri: string) => {
     });
 
     const result = await response.json();
-
-    if (result.ParsedResults && result.ParsedResults.length > 0) {
-      return result.ParsedResults[0].ParsedText;
-    }
-    return null;
+    return result.ParsedResults?.[0]?.ParsedText || null;
   } catch (error) {
     console.error("Cloud OCR Error:", error);
     return null;
