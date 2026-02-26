@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 import { useAuth } from '@/context/auth';
 import { extractReceiptWithGemini } from '../../services/geminiService';
@@ -10,6 +11,11 @@ import { performOCR } from '../../services/ocrService';
 
 export default function ScannerScreen() {
   const { signOut } = useAuth();
+
+  async function handleSignOut() {
+    await signOut();
+    router.replace('/');
+  }
   const [image, setImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -82,7 +88,7 @@ export default function ScannerScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
+      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
 

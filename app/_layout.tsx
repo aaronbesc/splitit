@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { router, Stack, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
@@ -15,6 +15,7 @@ export const unstable_settings = {
 function RootLayoutNav() {
   const { session, loading } = useAuth();
   const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
     if (loading) return;
@@ -24,7 +25,7 @@ function RootLayoutNav() {
     } else if (!session && inTabsGroup) {
       router.replace('/');
     }
-  }, [session, loading]);
+  }, [session, loading, segments]);
 
   return (
     <Stack>
