@@ -2,11 +2,14 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/context/auth';
 import { extractReceiptWithGemini } from '../../services/geminiService';
 import { performOCR } from '../../services/ocrService';
 
 export default function ScannerScreen() {
+  const { signOut } = useAuth();
   const [image, setImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -78,7 +81,11 @@ export default function ScannerScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
+        <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
+
       <Text style={styles.title}>GatorML Scanner</Text>
 
       {image && <Image source={{ uri: image }} style={styles.preview} />}
@@ -108,7 +115,7 @@ export default function ScannerScreen() {
           )}
         </>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -149,5 +156,15 @@ const styles = StyleSheet.create({
   loadingContainer: {
     marginVertical: 20,
     alignItems: 'center'
-  }
+  },
+  signOutButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+  },
+  signOutText: {
+    fontSize: 15,
+    color: '#DC2626',
+    fontWeight: '500',
+  },
 });
