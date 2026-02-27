@@ -1,0 +1,13 @@
+{
+  "merchantName": "Bella Pasta",
+  "serverName": "PM BAR P",
+  "dateTime": "08/09/19 4:28 PM",
+  "subtotal": 28.48,
+  "tax": 2.28,
+  "tip": null,
+  "total": 30.76,
+  "items": [],
+  "warnings": [
+    "Could not extract individual item prices as they were not explicitly listed next to the items."
+  ]
+}

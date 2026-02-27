@@ -1,0 +1,62 @@
+{
+  "merchantName": "SASKA'S",
+  "serverName": "Sue",
+  "dateTime": "08/15/2017 5:51 PM",
+  "subtotal": 167,
+  "tax": 12.94,
+  "tip": null,
+  "total": 179.94,
+  "items": [
+    {
+      "name": "Draft Blackhouse",
+      "quantity": 1,
+      "unitPrice": 7,
+      "lineTotal": 7
+    },
+    {
+      "name": "\"Cowboy\" 16oz Ribeye",
+      "quantity": 1,
+      "unitPrice": 45,
+      "lineTotal": 45
+    },
+    {
+      "name": "Make It Blue",
+      "quantity": 1,
+      "unitPrice": 5,
+      "lineTotal": 5
+    },
+    {
+      "name": "Add Lobster",
+      "quantity": 1,
+      "unitPrice": 21,
+      "lineTotal": 21
+    },
+    {
+      "name": "CK Manhattan(265.00)",
+      "quantity": 1,
+      "unitPrice": 10,
+      "lineTotal": 10
+    },
+    {
+      "name": "Whistle Pig Rye 10yr (2 620.00)",
+      "quantity": 1,
+      "unitPrice": 40,
+      "lineTotal": 40
+    },
+    {
+      "name": "\"Duke\" 16oz Top Sirloin",
+      "quantity": 1,
+      "unitPrice": 34,
+      "lineTotal": 34
+    },
+    {
+      "name": "Make It Blue",
+      "quantity": 1,
+      "unitPrice": 5,
+      "lineTotal": 5
+    }
+  ],
+  "warnings": [
+    "Item '(2) BMOD Up' could not be parsed due to missing line total."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "merchantName": "Katana Sushi",
+  "serverName": "Michael C",
+  "dateTime": "05/11/18 8:47 PM",
+  "subtotal": 131,
+  "tax": 12.71,
+  "tip": null,
+  "total": 143.71,
+  "items": [
+    {
+      "name": "Hamachi Collar",
+      "quantity": 1,
+      "unitPrice": 12,
+      "lineTotal": 12
+    },
+    {
+      "name": "Mega Poke Bowl",
+      "quantity": 1,
+      "unitPrice": 17,
+      "lineTotal": 17
+    },
+    {
+      "name": "Hamachi - Sashimi",
+      "quantity": 1,
+      "unitPrice": 12,
+      "lineTotal": 12
+    },
+    {
+      "name": "Maguro - Sashimi",
+      "quantity": 1,
+      "unitPrice": 11,
+      "lineTotal": 11
+    },
+    {
+      "name": "Salmon - Sashimi",
+      "quantity": 1,
+      "unitPrice": 10,
+      "lineTotal": 10
+    },
+    {
+      "name": "Sockeye Salmon - Sashimi",
+      "quantity": 3,
+      "unitPrice": 12,
+      "lineTotal": 36
+    },
+    {
+      "name": "Hamachi Japapeno",
+      "quantity": 1,
+      "unitPrice": 12,
+      "lineTotal": 12
+    },
+    {
+      "name": "Salmon Collar",
+      "quantity": 1,
+      "unitPrice": 10,
+      "lineTotal": 10
+    },
+    {
+      "name": "Escolar - Sashimi",
+      "quantity": 1,
+      "unitPrice": 11,
+      "lineTotal": 11
+    }
+  ],
+  "warnings": []
+}

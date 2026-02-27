@@ -1,0 +1,42 @@
+ {
+  "merchantName": "Dona Mercedes Restaurant",
+  "serverName": "Vero",
+  "dateTime": null,
+  "subtotal": 22.25,
+  "tax": 2.22,
+  "tip": null,
+  "total": 24.47,
+  "items": [
+    {
+      "name": "CHicharon",
+      "quantity": 1,
+      "unitPrice": 2.25,
+      "lineTotal": 2.25
+    },
+    {
+      "name": "Pupusa Queso",
+      "quantity": 3,
+      "unitPrice": 2.25,
+      "lineTotal": 6.75
+    },
+    {
+      "name": "Platanos Orden",
+      "quantity": 1,
+      "unitPrice": 7.75,
+      "lineTotal": 7.75
+    },
+    {
+      "name": "Diet coke",
+      "quantity": 1,
+      "unitPrice": 1.5,
+      "lineTotal": 1.5
+    },
+    {
+      "name": "Quesadilla salvadorena",
+      "quantity": 2,
+      "unitPrice": 2,
+      "lineTotal": 4
+    }
+  ],
+  "warnings": []
+}

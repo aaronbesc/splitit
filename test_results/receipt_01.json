@@ -1,0 +1,30 @@
+{
+  "merchantName": "GREEN FIELD",
+  "serverName": "Francis",
+  "dateTime": null,
+  "subtotal": 51.9,
+  "tax": 4.68,
+  "tip": null,
+  "total": 56.58,
+  "items": [
+    {
+      "name": "Coffee",
+      "quantity": 1,
+      "unitPrice": 3,
+      "lineTotal": 3
+    },
+    {
+      "name": "Lunch",
+      "quantity": 2,
+      "unitPrice": 22.95,
+      "lineTotal": 45.9
+    },
+    {
+      "name": "Coke",
+      "quantity": 1,
+      "unitPrice": 3,
+      "lineTotal": 3
+    }
+  ],
+  "warnings": []
+}

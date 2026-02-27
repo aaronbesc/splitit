@@ -1,0 +1,45 @@
+{
+  "merchantName": "Akira",
+  "serverName": "Phil",
+  "dateTime": "2016-11-16 18:58:34",
+  "subtotal": 88.65,
+  "tax": 56.93,
+  "tip": null,
+  "total": 93.58,
+  "items": [
+    {
+      "name": "Hi Chk Steak(K)",
+      "quantity": 1,
+      "unitPrice": 22.95,
+      "lineTotal": 22.95
+    },
+    {
+      "name": "Sushi Deluxe",
+      "quantity": 1,
+      "unitPrice": 20.75,
+      "lineTotal": 20.75
+    },
+    {
+      "name": "Glenmont Roll",
+      "quantity": 1,
+      "unitPrice": 15.95,
+      "lineTotal": 15.95
+    },
+    {
+      "name": "Philly R",
+      "quantity": 1,
+      "unitPrice": 6.5,
+      "lineTotal": 6.5
+    },
+    {
+      "name": "Sp Tuna R Salmon R",
+      "quantity": 1,
+      "unitPrice": 13,
+      "lineTotal": 13
+    }
+  ],
+  "warnings": [
+    "Sum of item line totals (79.15) does not match explicit subtotal (88.65).",
+    "Calculated total (subtotal + tax = 145.58) does not match explicit total (93.58)."
+  ]
+}

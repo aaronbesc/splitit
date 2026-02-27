@@ -1,0 +1,18 @@
+{
+  "merchantName": "El Gran Mar de Plata",
+  "serverName": "Kayra",
+  "dateTime": "4/20/2017 10:13:25 PM",
+  "subtotal": 5,
+  "tax": 0.35,
+  "tip": null,
+  "total": 5.35,
+  "items": [
+    {
+      "name": "Miller Lite",
+      "quantity": 1,
+      "unitPrice": 5,
+      "lineTotal": 5
+    }
+  ],
+  "warnings": []
+}

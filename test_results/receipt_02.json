@@ -1,0 +1,44 @@
+{
+  "merchantName": "GRAND LUX CAFE",
+  "serverName": "STEPHEN R",
+  "dateTime": "04/25/15 17:42",
+  "subtotal": 63.75,
+  "tax": 5.5,
+  "tip": null,
+  "total": 69.25,
+  "items": [
+    {
+      "name": "Coffee",
+      "quantity": 1,
+      "unitPrice": 2.95,
+      "lineTotal": 2.95
+    },
+    {
+      "name": "Chicken Parmesan",
+      "quantity": 1,
+      "unitPrice": 17.95,
+      "lineTotal": 17.95
+    },
+    {
+      "name": "Prime Top Sinloin",
+      "quantity": 1,
+      "unitPrice": 25.95,
+      "lineTotal": 25.95
+    },
+    {
+      "name": "The Bacon-Cheese Burger",
+      "quantity": 1,
+      "unitPrice": 13.95,
+      "lineTotal": 13.95
+    },
+    {
+      "name": "Coffee",
+      "quantity": 1,
+      "unitPrice": 2.95,
+      "lineTotal": 2.95
+    }
+  ],
+  "warnings": [
+    "Gratuity Not Included"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "merchantName": "GOLDEN BOWL TERIYAKI",
+  "serverName": "Manager 1",
+  "dateTime": "05-18-2019 11:19 AM",
+  "subtotal": 13.63,
+  "tax": 1.4,
+  "tip": null,
+  "total": 15.03,
+  "items": [
+    {
+      "name": "#1 CHKN PLATE",
+      "quantity": 1,
+      "unitPrice": 9.39,
+      "lineTotal": 9.39
+    },
+    {
+      "name": "+ AVOCADO",
+      "quantity": 1,
+      "unitPrice": 1.95,
+      "lineTotal": 1.95
+    },
+    {
+      "name": "MD. DRINK",
+      "quantity": 1,
+      "unitPrice": 2.29,
+      "lineTotal": 2.29
+    }
+  ],
+  "warnings": []
+}
