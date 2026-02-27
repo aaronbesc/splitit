@@ -3,6 +3,7 @@ const MODEL_NAME = "gemini-2.5-flash";
 
 export type ReceiptJSON = {
   merchantName: string | null;
+  address: string | null;
   serverName: string | null;
   dateTime: string | null;
   subtotal: number | null;
@@ -20,6 +21,7 @@ export type ReceiptJSON = {
 
 const blankReceipt = (warning?: string): ReceiptJSON => ({
   merchantName: null,
+  address: null,
   serverName: null,
   dateTime: null,
   subtotal: null,
@@ -45,6 +47,7 @@ export const extractReceiptWithGemini = async (ocrText: string): Promise<Receipt
     type: "object",
     properties: {
       merchantName: { type: ["string", "null"] },
+      address: { type: ["string", "null"] },
       serverName: { type: ["string", "null"] },
       dateTime: { type: ["string", "null"] },
       subtotal: { type: ["number", "null"] },
@@ -66,7 +69,7 @@ export const extractReceiptWithGemini = async (ocrText: string): Promise<Receipt
       },
       warnings: { type: "array", items: { type: "string" } },
     },
-    required: ["merchantName", "serverName", "dateTime", "subtotal", "tax", "tip", "total", "items", "warnings"],
+    required: ["merchantName", "address", "serverName", "dateTime", "subtotal", "tax", "tip", "total", "items", "warnings"],
   };
 
 const prompt = `
@@ -75,6 +78,7 @@ Extract receipt data from OCR text.
 Hard rules:
 - ONLY use values explicitly present in the OCR text. Do NOT guess names or amounts.
 - If merchantName is not present, set it to null.
+- address: the restaurant/merchant street address if present in the OCR text, otherwise null.
 - For each item:
   - If a quantity is explicitly shown (e.g., "2 Big Boss", "3 Musashi's Paddle"), set quantity to that number.
   - If quantity is NOT explicitly shown, set quantity to 1.

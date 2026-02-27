@@ -1,7 +1,15 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
@@ -9,26 +17,25 @@ import { useAuth } from '@/context/auth';
 import { extractReceiptWithGemini } from '../../services/geminiService';
 import { performOCR } from '../../services/ocrService';
 
+const BRAND = '#5B6AF4';
+
 export default function ScannerScreen() {
   const { signOut } = useAuth();
+  const [image, setImage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   async function handleSignOut() {
     await signOut();
     router.replace('/');
   }
-  const [image, setImage] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true, //allow cropping
+      allowsEditing: true,
       quality: 1,
     });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
+    if (!result.canceled) setImage(result.assets[0].uri);
   };
 
   const takePhoto = async () => {
@@ -38,49 +45,37 @@ export default function ScannerScreen() {
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true, //allowed for background noise
+      allowsEditing: true,
       quality: 1,
     });
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
+    if (!result.canceled) setImage(result.assets[0].uri);
   };
 
   const handleProcessReceipt = async () => {
     if (!image) return;
     setIsProcessing(true);
-
     try {
-      //pre-processing
       const manipulatedImage = await ImageManipulator.manipulateAsync(
         image,
-        [{ resize: { width: 1080 } }], //resizes photos to 1080px width
+        [{ resize: { width: 1080 } }],
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
 
-      console.log("Image optimized for OCR (Dimensions and compression applied)");
-
-      //send image to OCR
       const rawText = await performOCR(manipulatedImage.uri);
-
-      if (rawText) {
-        console.log("!!!OCR SUCCESS!!!");
-        console.log(rawText);
-
-        //Gemini: text -> structured JSON
-        const structuredData = await extractReceiptWithGemini(rawText);
-        console.log("!!!STRUCTURED JSON (GEMINI)!!!");
-        console.log(JSON.stringify(structuredData, null, 2));
-
-        Alert.alert("Success", "Gemini structured JSON printed to terminal.");
-
-        //navigation.navigate('Results', { data: structuredData });
-      } else {
-        Alert.alert("OCR Failed", "The API returned no text. Check your terminal logs.");
+      if (!rawText) {
+        Alert.alert('OCR Failed', 'No text returned. Check your terminal logs.');
+        return;
       }
+
+      const structuredData = await extractReceiptWithGemini(rawText);
+
+      router.push({
+        pathname: '/receipt-review',
+        params: { data: JSON.stringify(structuredData) },
+      });
     } catch (error) {
-      console.error("Pipeline Error:", error);
-      Alert.alert("Error", "An error occurred during image processing.");
+      console.error('Pipeline Error:', error);
+      Alert.alert('Error', 'An error occurred during image processing.');
     } finally {
       setIsProcessing(false);
     }
@@ -88,38 +83,55 @@ export default function ScannerScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-        <Text style={styles.signOutText}>Sign Out</Text>
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <Text style={styles.title}>Scan Receipt</Text>
+        <TouchableOpacity onPress={handleSignOut} style={styles.signOutBtn} activeOpacity={0.7}>
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
 
-      <Text style={styles.title}>GatorML Scanner</Text>
-
-      {image && <Image source={{ uri: image }} style={styles.preview} />}
+      <View style={styles.previewArea}>
+        {image ? (
+          <Image source={{ uri: image }} style={styles.preview} />
+        ) : (
+          <View style={styles.previewPlaceholder}>
+            <Text style={styles.previewPlaceholderText}>No image selected</Text>
+            <Text style={styles.previewPlaceholderSub}>Take a photo or choose from gallery</Text>
+          </View>
+        )}
+      </View>
 
       {isProcessing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text>Scanning...</Text>
+          <ActivityIndicator size="large" color={BRAND} />
+          <Text style={styles.loadingText}>Scanning receipt…</Text>
         </View>
       ) : (
-        <>
-          <TouchableOpacity style={styles.button} onPress={takePhoto}>
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity style={styles.button} onPress={takePhoto} activeOpacity={0.85}>
             <Text style={styles.buttonText}>Take Photo</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={pickImage}>
+          <TouchableOpacity style={styles.button} onPress={pickImage} activeOpacity={0.85}>
             <Text style={styles.buttonText}>Gallery</Text>
           </TouchableOpacity>
 
           {image && (
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: '#28a745' }]}
-              onPress={handleProcessReceipt}
-            >
-              <Text style={styles.buttonText}>Process Receipt</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={[styles.button, styles.processBtn]}
+                onPress={handleProcessReceipt}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.buttonText}>Process Receipt</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => setImage(null)} activeOpacity={0.7}>
+                <Text style={styles.clearText}>Clear image</Text>
+              </TouchableOpacity>
+            </>
           )}
-        </>
+        </View>
       )}
     </SafeAreaView>
   );
@@ -128,49 +140,101 @@ export default function ScannerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff'
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#0021A5'
+    fontWeight: '700',
+    color: '#1C1C1E',
   },
-  preview: {
-    width: 300,
-    height: 400,
-    marginBottom: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ccc'
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 5,
-    width: 250,
-    alignItems: 'center'
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600'
-  },
-  loadingContainer: {
-    marginVertical: 20,
-    alignItems: 'center'
-  },
-  signOutButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
+  signOutBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
   },
   signOutText: {
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: '600',
     color: '#DC2626',
+  },
+  previewArea: {
+    flex: 1,
+    margin: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  preview: {
+    width: '100%',
+    height: '100%',
+  },
+  previewPlaceholder: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  previewPlaceholderText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#9CA3AF',
+  },
+  previewPlaceholderSub: {
+    fontSize: 13,
+    color: '#D1D5DB',
+  },
+  loadingContainer: {
+    paddingVertical: 32,
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  buttonGroup: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+    gap: 12,
+    alignItems: 'center',
+  },
+  button: {
+    backgroundColor: BRAND,
+    paddingVertical: 14,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: BRAND,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  processBtn: {
+    backgroundColor: '#16A34A',
+    shadowColor: '#16A34A',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  clearText: {
+    fontSize: 14,
+    color: '#9CA3AF',
     fontWeight: '500',
   },
 });
