@@ -26,8 +26,8 @@ import { ReceiptJSON } from './geminiService';
 export async function saveReceipt(
   data: ReceiptJSON,
   userId: string
-): Promise<{ error: string | null }> {
-  const { error } = await supabase.from('receipts').insert({
+): Promise<{ id: string | null; error: string | null }> {
+  const { data: inserted, error } = await supabase.from('receipts').insert({
     user_id: userId,
     merchant_name: data.merchantName,
     address: data.address,
@@ -37,7 +37,7 @@ export async function saveReceipt(
     tip: data.tip,
     total: data.total,
     items: data.items,
-  });
+  }).select('id').single();
   if (error) console.error('[receiptService] Supabase error:', error);
-  return { error: error?.message ?? null };
+  return { id: inserted?.id ?? null, error: error?.message ?? null };
 }

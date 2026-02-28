@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aaronbesc.splitit"
+      "bundleIdentifier": "com.aaronbesc.splitit",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -52,7 +55,7 @@
         "projectId": "34ff9ba0-e6ed-4095-ba45-b320cabd9175"
       }
     },
-    "owner": "aaronbesc",
+    "owner": "gatorml",
     "updates": {
       "url": "https://u.expo.dev/34ff9ba0-e6ed-4095-ba45-b320cabd9175"
     },

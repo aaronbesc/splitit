@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/auth';
 import { ReceiptJSON } from '../services/geminiService';
 import { saveReceipt } from '../services/receiptService';
+import { createSession } from '@/services/sessionService';
 
 const BRAND = '#5B6AF4';
 
@@ -132,15 +133,16 @@ export default function ReceiptReviewScreen() {
       console.log('[handleSave] saving for user:', user.id);
       console.log('[handleSave] payload:', JSON.stringify(receipt, null, 2));
 
-      const { error } = await saveReceipt(receipt, user.id);
+      const { id: receiptId, error } = await saveReceipt(receipt, user.id);
 
       console.log('[handleSave] result error:', error);
 
       if (error) {
         Alert.alert('Save Failed', error);
       } else {
-        Alert.alert('Saved!', 'Receipt saved to your account.', [
-          { text: 'OK', onPress: () => router.back() },
+        Alert.alert('Receipt Saved', 'What would you like to do?', [
+          { text: 'Done', style: 'cancel', onPress: () => router.back() },
+          { text: 'Start Split Session', onPress: () => handleStartSession(receiptId!) },
         ]);
       }
     } catch (err) {
@@ -150,6 +152,13 @@ export default function ReceiptReviewScreen() {
       setIsSaving(false);
     }
   };
+
+  async function handleStartSession(receiptId: string) {
+    const displayName = user!.user_metadata?.full_name ?? user!.email?.split('@')[0] ?? 'Host';
+    const { session, error } = await createSession(receiptId, user!.id, displayName);
+    if (error || !session) { Alert.alert('Error', error ?? 'Could not create session.'); return; }
+    router.replace({ pathname: '/session-lobby', params: { sessionId: session.id, isHost: 'true' } });
+  }
 
   return (
     <SafeAreaView style={styles.container}>

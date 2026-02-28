@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -16,17 +17,44 @@ import { router } from 'expo-router';
 import { useAuth } from '@/context/auth';
 import { extractReceiptWithGemini } from '../../services/geminiService';
 import { performOCR } from '../../services/ocrService';
+import { findSessionByCode, joinSession } from '@/services/sessionService';
 
 const BRAND = '#5B6AF4';
 
 export default function ScannerScreen() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [image, setImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showJoinInput, setShowJoinInput] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
 
   async function handleSignOut() {
     await signOut();
     router.replace('/');
+  }
+
+  async function handleJoinByCode() {
+    if (joinCode.trim().length !== 6) {
+      Alert.alert('Invalid Code', 'Enter a 6-character code.');
+      return;
+    }
+    setIsJoining(true);
+    const { session, error } = await findSessionByCode(joinCode);
+    if (error || !session) {
+      Alert.alert('Not Found', error ?? 'Session not found.');
+      setIsJoining(false);
+      return;
+    }
+    const displayName =
+      user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? 'Guest';
+    const { error: joinError } = await joinSession(session.id, user!.id, displayName);
+    setIsJoining(false);
+    if (joinError) {
+      Alert.alert('Join Failed', joinError);
+      return;
+    }
+    router.push({ pathname: '/session-lobby', params: { sessionId: session.id, isHost: 'false' } });
   }
 
   const pickImage = async () => {
@@ -130,6 +158,50 @@ export default function ScannerScreen() {
                 <Text style={styles.clearText}>Clear image</Text>
               </TouchableOpacity>
             </>
+          )}
+
+          {/* Join a Session */}
+          {!showJoinInput ? (
+            <TouchableOpacity
+              style={styles.joinBtn}
+              onPress={() => setShowJoinInput(true)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.joinBtnText}>Join a Session</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.joinInputGroup}>
+              <TextInput
+                style={styles.joinInput}
+                value={joinCode}
+                onChangeText={(v) => setJoinCode(v.toUpperCase())}
+                placeholder="Enter 6-char code"
+                placeholderTextColor="#9CA3AF"
+                autoCapitalize="characters"
+                maxLength={6}
+                autoFocus
+              />
+              <View style={styles.joinActions}>
+                <TouchableOpacity
+                  style={styles.joinCancelBtn}
+                  onPress={() => { setShowJoinInput(false); setJoinCode(''); }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.joinCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.joinConfirmBtn, isJoining && { opacity: 0.6 }]}
+                  onPress={handleJoinByCode}
+                  disabled={isJoining}
+                  activeOpacity={0.85}
+                >
+                  {isJoining
+                    ? <ActivityIndicator color="#FFFFFF" size="small" />
+                    : <Text style={styles.joinConfirmText}>Join</Text>
+                  }
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
         </View>
       )}
@@ -236,5 +308,69 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9CA3AF',
     fontWeight: '500',
+  },
+  joinBtn: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: BRAND,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  joinBtnText: {
+    color: BRAND,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  joinInputGroup: {
+    width: '100%',
+    gap: 10,
+  },
+  joinInput: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1C1C1E',
+    textAlign: 'center',
+    letterSpacing: 4,
+    width: '100%',
+  },
+  joinActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  joinCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  joinCancelText: {
+    fontSize: 15,
+    color: '#9CA3AF',
+    fontWeight: '600',
+  },
+  joinConfirmBtn: {
+    flex: 2,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: BRAND,
+    alignItems: 'center',
+    shadowColor: BRAND,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  joinConfirmText: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });
