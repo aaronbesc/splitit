@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -10,12 +10,20 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { router } from 'expo-router';
+import {
+  useFonts,
+  SpaceGrotesk_400Regular,
+  SpaceGrotesk_500Medium,
+  SpaceGrotesk_600SemiBold,
+  SpaceGrotesk_700Bold,
+} from '@expo-google-fonts/space-grotesk';
 import { useAuth } from '@/context/auth';
+import BlobBackground from '@/components/blob-background';
 
-const BRAND = '#5B6AF4';
+const BG = '#050505';
+const GREEN = '#00E896';
 
 export default function SignInScreen() {
   const { signIn } = useAuth();
@@ -24,6 +32,13 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [fontsLoaded] = useFonts({
+    SpaceGrotesk_400Regular,
+    SpaceGrotesk_500Medium,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
+  });
+
   async function handleSignIn() {
     if (!email || !password) {
       setError('Please enter your email and password.');
@@ -31,16 +46,19 @@ export default function SignInScreen() {
     }
     setError(null);
     setLoading(true);
-    const { error } = await signIn(email, password);
+    const { error: authError } = await signIn(email, password);
     setLoading(false);
-    if (error) {
-      setError(error);
-    }
-    // On success the auth context updates session, _layout.tsx redirects to /(tabs)
+    if (authError) setError(authError);
+  }
+
+  if (!fontsLoaded) {
+    return <View style={{ flex: 1, backgroundColor: BG }} />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      <BlobBackground />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -50,7 +68,7 @@ export default function SignInScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo / Header */}
+          {/* Header */}
           <View style={styles.header}>
             <View style={styles.logoWrapper}>
               <Text style={styles.logoLetter}>S</Text>
@@ -59,8 +77,8 @@ export default function SignInScreen() {
             <Text style={styles.tagline}>Split bills the easy way</Text>
           </View>
 
-          {/* Form */}
-          <View style={styles.form}>
+          {/* Glass form */}
+          <View style={styles.glassCard}>
             {error && (
               <View style={styles.errorBox}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -74,7 +92,7 @@ export default function SignInScreen() {
                 value={email}
                 onChangeText={setEmail}
                 placeholder="you@example.com"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="rgba(255,255,255,0.28)"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -87,7 +105,7 @@ export default function SignInScreen() {
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
                 <Text style={styles.label}>Password</Text>
-                <TouchableOpacity disabled={loading}>
+                <TouchableOpacity onPress={() => router.push('/forgot-password')} disabled={loading}>
                   <Text style={styles.forgotText}>Forgot password?</Text>
                 </TouchableOpacity>
               </View>
@@ -96,7 +114,7 @@ export default function SignInScreen() {
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Enter your password"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="rgba(255,255,255,0.28)"
                 secureTextEntry
                 returnKeyType="done"
                 onSubmitEditing={handleSignIn}
@@ -108,12 +126,12 @@ export default function SignInScreen() {
             <TouchableOpacity
               style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
               onPress={handleSignIn}
-              activeOpacity={0.85}
+              activeOpacity={0.8}
               disabled={loading}
               testID="sign-in-button"
             >
               {loading
-                ? <ActivityIndicator color="#FFFFFF" />
+                ? <ActivityIndicator color={BG} />
                 : <Text style={styles.primaryButtonText}>Sign In</Text>
               }
             </TouchableOpacity>
@@ -133,125 +151,136 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  keyboardView: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: BG },
+  keyboardView: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 48,
+    paddingVertical: 52,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
+
+  header: { alignItems: 'center', marginBottom: 36 },
   logoWrapper: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    backgroundColor: BRAND,
+    width: 72,
+    height: 72,
+    borderRadius: 22,
+    backgroundColor: GREEN,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-    shadowColor: BRAND,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 28,
+    elevation: 12,
   },
   logoLetter: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontSize: 36,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    color: BG,
   },
   appName: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: '#1C1C1E',
-    letterSpacing: -0.5,
+    fontSize: 33,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    color: '#FFFFFF',
+    letterSpacing: -0.6,
     marginBottom: 6,
   },
   tagline: {
-    fontSize: 15,
-    color: '#6B7280',
+    fontSize: 14,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    color: 'rgba(255,255,255,0.48)',
+    letterSpacing: 0.4,
   },
-  form: {
+
+  glassCard: {
+    backgroundColor: 'rgba(255,255,255,0.055)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    padding: 24,
     gap: 16,
-    marginBottom: 32,
+    marginBottom: 28,
   },
+
   errorBox: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: 'rgba(220,38,38,0.14)',
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(220,38,38,0.28)',
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
   errorText: {
-    color: '#DC2626',
-    fontSize: 14,
+    color: '#FC8181',
+    fontSize: 13,
+    fontFamily: 'SpaceGrotesk_400Regular',
   },
-  inputGroup: {
-    gap: 6,
-  },
+
+  inputGroup: { gap: 6 },
   labelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+    fontSize: 12,
+    fontFamily: 'SpaceGrotesk_500Medium',
+    color: 'rgba(255,255,255,0.65)',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   forgotText: {
-    fontSize: 14,
-    color: BRAND,
-    fontWeight: '500',
+    fontSize: 13,
+    fontFamily: 'SpaceGrotesk_500Medium',
+    color: GREEN,
   },
   input: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 16,
-    color: '#1C1C1E',
-  },
-  primaryButton: {
-    backgroundColor: BRAND,
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 8,
-    shadowColor: BRAND,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  primaryButtonDisabled: {
-    opacity: 0.7,
-  },
-  primaryButtonText: {
+    fontSize: 15,
+    fontFamily: 'SpaceGrotesk_400Regular',
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
   },
+
+  primaryButton: {
+    backgroundColor: GREEN,
+    borderRadius: 14,
+    paddingVertical: 17,
+    alignItems: 'center',
+    marginTop: 4,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  primaryButtonDisabled: { opacity: 0.55 },
+  primaryButtonText: {
+    color: BG,
+    fontSize: 16,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    letterSpacing: 0.4,
+  },
+
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 15,
-    color: '#6B7280',
+    fontSize: 14,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    color: 'rgba(255,255,255,0.45)',
   },
   linkText: {
-    fontSize: 15,
-    color: BRAND,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    color: GREEN,
   },
 });

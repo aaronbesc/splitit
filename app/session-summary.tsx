@@ -10,8 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ItemClaim, ReceiptForSession, SessionParticipant } from '@/services/sessionService';
-
-const BRAND = '#5B6AF4';
+import { BG, F, GLASS, GREEN, T } from '@/constants/design';
 
 type SummaryPayload = {
   sessionId: string;
@@ -43,7 +42,7 @@ function computeSummary(
   receipt: ReceiptForSession,
   claims: ItemClaim[]
 ): Summary {
-  const claimMap = new Map<number, Set<string>>(); // itemIndex → Set<userId>
+  const claimMap = new Map<number, Set<string>>();
   for (const c of claims) {
     if (!claimMap.has(c.item_index)) claimMap.set(c.item_index, new Set());
     claimMap.get(c.item_index)!.add(c.user_id);
@@ -57,7 +56,6 @@ function computeSummary(
     const lineTotal = item.lineTotal ?? 0;
     const claimants = claimMap.get(index);
     if (!claimants || claimants.size === 0) {
-      // Unclaimed: split evenly among all participants
       const share = participants.length > 0 ? lineTotal / participants.length : lineTotal;
       myUnclaimedShare += share;
       myItemSubtotal += share;
@@ -173,23 +171,25 @@ export default function SessionSummaryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BG,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: GLASS.border,
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '800',
-    color: '#1C1C1E',
+    fontFamily: F.bold,
+    color: T.primary,
+    letterSpacing: -0.3,
   },
   headerSub: {
     fontSize: 14,
-    color: '#6B7280',
+    fontFamily: F.regular,
+    color: T.muted,
     marginTop: 2,
   },
   content: {
@@ -200,20 +200,20 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#6B7280',
+    fontSize: 11,
+    fontFamily: F.semiBold,
+    color: T.muted,
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
     marginBottom: 10,
   },
   lineRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingVertical: 7,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: GLASS.borderDim,
     gap: 12,
   },
   lineLeft: {
@@ -222,50 +222,62 @@ const styles = StyleSheet.create({
   },
   lineName: {
     fontSize: 15,
-    color: '#1C1C1E',
-    fontWeight: '500',
+    fontFamily: F.medium,
+    color: T.primary,
   },
   lineSub: {
     fontSize: 12,
-    color: '#9CA3AF',
+    fontFamily: F.regular,
+    color: T.muted,
   },
   lineAmount: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontFamily: F.semiBold,
+    color: T.secondary,
   },
   totalCard: {
-    backgroundColor: BRAND,
-    borderRadius: 16,
-    padding: 24,
+    backgroundColor: GREEN,
+    borderRadius: 20,
+    padding: 28,
     alignItems: 'center',
     marginBottom: 32,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 10,
   },
   totalLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '600',
+    fontSize: 13,
+    fontFamily: F.semiBold,
+    color: 'rgba(5,5,5,0.6)',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
     marginBottom: 6,
   },
   totalAmount: {
-    fontSize: 48,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontSize: 52,
+    fontFamily: F.bold,
+    color: BG,
+    letterSpacing: -1,
   },
   doneBtn: {
-    backgroundColor: '#F2F2F7',
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
+    backgroundColor: GLASS.bgStrong,
+    borderWidth: 1,
+    borderColor: GLASS.border,
   },
   doneBtnText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontFamily: F.semiBold,
+    color: T.primary,
   },
   errorText: {
     fontSize: 15,
-    color: '#9CA3AF',
+    fontFamily: F.regular,
+    color: T.muted,
     textAlign: 'center',
     marginTop: 40,
   },

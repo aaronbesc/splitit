@@ -21,8 +21,7 @@ import {
   getSession,
   updateSessionStatus,
 } from '@/services/sessionService';
-
-const BRAND = '#5B6AF4';
+import { BG, F, GLASS, GREEN, T } from '@/constants/design';
 
 export default function SessionLobbyScreen() {
   const { sessionId, isHost } = useLocalSearchParams<{ sessionId: string; isHost: string }>();
@@ -47,17 +46,11 @@ export default function SessionLobbyScreen() {
       }
     );
 
-    // Subscribe to new participants joining
     const participantsChannel = supabase
       .channel(`session-lobby-participants-${sessionId}`)
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'session_participants',
-          filter: `session_id=eq.${sessionId}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'session_participants', filter: `session_id=eq.${sessionId}` },
         (payload) => {
           const newParticipant = payload.new as SessionParticipant;
           setParticipants((prev) => {
@@ -68,17 +61,11 @@ export default function SessionLobbyScreen() {
       )
       .subscribe();
 
-    // Subscribe to session status changes
     const sessionChannel = supabase
       .channel(`session-lobby-status-${sessionId}`)
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'sessions',
-          filter: `id=eq.${sessionId}`,
-        },
+        { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` },
         (payload) => {
           const updated = payload.new as Session;
           setSession(updated);
@@ -103,13 +90,12 @@ export default function SessionLobbyScreen() {
       Alert.alert('Error', error);
       setIsStarting(false);
     }
-    // Navigation handled by Realtime listener
   }
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={BRAND} style={{ marginTop: 60 }} />
+        <ActivityIndicator size="large" color={GREEN} style={{ marginTop: 60 }} />
       </SafeAreaView>
     );
   }
@@ -139,9 +125,9 @@ export default function SessionLobbyScreen() {
           <View style={styles.qrContainer}>
             <QRCode
               value={`splitit://join/${sessionId}`}
-              size={200}
-              color="#1C1C1E"
-              backgroundColor="#FFFFFF"
+              size={180}
+              color="#FFFFFF"
+              backgroundColor="transparent"
             />
           </View>
         )}
@@ -168,7 +154,7 @@ export default function SessionLobbyScreen() {
             activeOpacity={0.85}
           >
             {isStarting
-              ? <ActivityIndicator color="#FFFFFF" />
+              ? <ActivityIndicator color={BG} />
               : <Text style={styles.startBtnText}>Start Splitting</Text>
             }
           </TouchableOpacity>
@@ -176,7 +162,7 @@ export default function SessionLobbyScreen() {
 
         {isHost !== 'true' && (
           <View style={styles.waitingRow}>
-            <ActivityIndicator size="small" color={BRAND} />
+            <ActivityIndicator size="small" color={GREEN} />
             <Text style={styles.waitingText}>Waiting for host to start…</Text>
           </View>
         )}
@@ -188,7 +174,7 @@ export default function SessionLobbyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BG,
   },
   header: {
     flexDirection: 'row',
@@ -197,7 +183,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: GLASS.border,
   },
   backBtn: {
     flexDirection: 'row',
@@ -207,21 +193,21 @@ const styles = StyleSheet.create({
   },
   backArrow: {
     fontSize: 28,
-    color: BRAND,
+    color: GREEN,
     lineHeight: 30,
-    fontWeight: '300',
+    fontFamily: F.regular,
   },
   backText: {
-    fontSize: 16,
-    color: BRAND,
-    fontWeight: '500',
+    fontSize: 15,
+    color: GREEN,
+    fontFamily: F.medium,
   },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
     fontSize: 17,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontFamily: F.bold,
+    color: T.primary,
   },
   content: {
     padding: 24,
@@ -229,55 +215,61 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   codeCard: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 16,
+    backgroundColor: GLASS.bg,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: GLASS.border,
     padding: 24,
     alignItems: 'center',
     width: '100%',
     marginBottom: 24,
   },
   codeLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
+    fontSize: 11,
+    fontFamily: F.semiBold,
+    color: T.muted,
     marginBottom: 8,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
   codeValue: {
-    fontSize: 42,
-    fontWeight: '800',
-    color: BRAND,
-    letterSpacing: 6,
+    fontSize: 44,
+    fontFamily: F.bold,
+    color: GREEN,
+    letterSpacing: 8,
     marginBottom: 10,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
   },
   codeHint: {
     fontSize: 13,
-    color: '#9CA3AF',
+    fontFamily: F.regular,
+    color: T.muted,
     textAlign: 'center',
   },
   qrContainer: {
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: GLASS.bgStrong,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: GLASS.border,
     marginBottom: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   participantsSection: {
     width: '100%',
     marginBottom: 32,
   },
   participantsTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontSize: 14,
+    fontFamily: F.semiBold,
+    color: T.secondary,
     marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   chipRow: {
     flexDirection: 'row',
@@ -285,35 +277,38 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chip: {
-    backgroundColor: '#EEF2FF',
+    backgroundColor: GLASS.bgStrong,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: GLASS.border,
     paddingHorizontal: 14,
     paddingVertical: 7,
   },
   chipText: {
     fontSize: 14,
-    color: BRAND,
-    fontWeight: '600',
+    fontFamily: F.medium,
+    color: GREEN,
   },
   startBtn: {
-    backgroundColor: BRAND,
+    backgroundColor: GREEN,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     width: '100%',
-    shadowColor: BRAND,
+    shadowColor: GREEN,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
   },
   startBtnDisabled: {
     opacity: 0.6,
   },
   startBtnText: {
-    color: '#FFFFFF',
+    color: BG,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: F.bold,
+    letterSpacing: 0.3,
   },
   waitingRow: {
     flexDirection: 'row',
@@ -322,6 +317,7 @@ const styles = StyleSheet.create({
   },
   waitingText: {
     fontSize: 15,
-    color: '#6B7280',
+    fontFamily: F.regular,
+    color: T.muted,
   },
 });

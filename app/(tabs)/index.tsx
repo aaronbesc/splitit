@@ -18,8 +18,7 @@ import { useAuth } from '@/context/auth';
 import { extractReceiptWithGemini } from '../../services/geminiService';
 import { performOCR } from '../../services/ocrService';
 import { findSessionByCode, joinSession } from '@/services/sessionService';
-
-const BRAND = '#5B6AF4';
+import { BG, F, GLASS, GREEN, INPUT, T } from '@/constants/design';
 
 export default function ScannerScreen() {
   const { user, signOut } = useAuth();
@@ -85,18 +84,15 @@ export default function ScannerScreen() {
     try {
       const manipulatedImage = await ImageManipulator.manipulateAsync(
         image,
-        [{ resize: { width: 1080 } }],
-        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        [{ resize: { width: 800 } }],
+        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
       );
-
       const rawText = await performOCR(manipulatedImage.uri);
       if (!rawText) {
         Alert.alert('OCR Failed', 'No text returned. Check your terminal logs.');
         return;
       }
-
       const structuredData = await extractReceiptWithGemini(rawText);
-
       router.push({
         pathname: '/receipt-review',
         params: { data: JSON.stringify(structuredData) },
@@ -111,6 +107,7 @@ export default function ScannerScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Scan Receipt</Text>
         <TouchableOpacity onPress={handleSignOut} style={styles.signOutBtn} activeOpacity={0.7}>
@@ -118,11 +115,13 @@ export default function ScannerScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Preview area */}
       <View style={styles.previewArea}>
         {image ? (
           <Image source={{ uri: image }} style={styles.preview} />
         ) : (
           <View style={styles.previewPlaceholder}>
+            <Text style={styles.previewIcon}>📄</Text>
             <Text style={styles.previewPlaceholderText}>No image selected</Text>
             <Text style={styles.previewPlaceholderSub}>Take a photo or choose from gallery</Text>
           </View>
@@ -131,27 +130,30 @@ export default function ScannerScreen() {
 
       {isProcessing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={BRAND} />
+          <ActivityIndicator size="large" color={GREEN} />
           <Text style={styles.loadingText}>Scanning receipt…</Text>
         </View>
       ) : (
         <View style={styles.buttonGroup}>
-          <TouchableOpacity style={styles.button} onPress={takePhoto} activeOpacity={0.85}>
-            <Text style={styles.buttonText}>Take Photo</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button} onPress={pickImage} activeOpacity={0.85}>
-            <Text style={styles.buttonText}>Gallery</Text>
-          </TouchableOpacity>
+          <View style={styles.cameraRow}>
+            <TouchableOpacity style={styles.halfBtn} onPress={takePhoto} activeOpacity={0.85}>
+              <Text style={styles.halfBtnIcon}>📷</Text>
+              <Text style={styles.halfBtnText}>Camera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.halfBtn} onPress={pickImage} activeOpacity={0.85}>
+              <Text style={styles.halfBtnIcon}>🖼</Text>
+              <Text style={styles.halfBtnText}>Gallery</Text>
+            </TouchableOpacity>
+          </View>
 
           {image && (
             <>
               <TouchableOpacity
-                style={[styles.button, styles.processBtn]}
+                style={styles.processBtn}
                 onPress={handleProcessReceipt}
                 activeOpacity={0.85}
               >
-                <Text style={styles.buttonText}>Process Receipt</Text>
+                <Text style={styles.processBtnText}>Process Receipt</Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => setImage(null)} activeOpacity={0.7}>
@@ -176,7 +178,7 @@ export default function ScannerScreen() {
                 value={joinCode}
                 onChangeText={(v) => setJoinCode(v.toUpperCase())}
                 placeholder="Enter 6-char code"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={T.placeholder}
                 autoCapitalize="characters"
                 maxLength={6}
                 autoFocus
@@ -196,7 +198,7 @@ export default function ScannerScreen() {
                   activeOpacity={0.85}
                 >
                   {isJoining
-                    ? <ActivityIndicator color="#FFFFFF" size="small" />
+                    ? <ActivityIndicator color={BG} size="small" />
                     : <Text style={styles.joinConfirmText}>Join</Text>
                   }
                 </TouchableOpacity>
@@ -212,7 +214,7 @@ export default function ScannerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BG,
   },
   header: {
     flexDirection: 'row',
@@ -220,33 +222,36 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 12,
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: GLASS.border,
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontFamily: F.bold,
+    color: T.primary,
   },
   signOutBtn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#FEF2F2',
+    borderRadius: 10,
+    backgroundColor: 'rgba(220,38,38,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(220,38,38,0.22)',
   },
   signOutText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#DC2626',
+    fontSize: 13,
+    fontFamily: F.semiBold,
+    color: '#FC8181',
   },
   previewArea: {
     flex: 1,
     margin: 20,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: GLASS.border,
+    backgroundColor: GLASS.bg,
   },
   preview: {
     width: '100%',
@@ -254,89 +259,118 @@ const styles = StyleSheet.create({
   },
   previewPlaceholder: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
+  },
+  previewIcon: {
+    fontSize: 40,
+    marginBottom: 4,
   },
   previewPlaceholderText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#9CA3AF',
+    fontFamily: F.semiBold,
+    color: T.muted,
   },
   previewPlaceholderSub: {
     fontSize: 13,
-    color: '#D1D5DB',
+    fontFamily: F.regular,
+    color: 'rgba(255,255,255,0.22)',
   },
   loadingContainer: {
     paddingVertical: 32,
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: 15,
+    fontFamily: F.medium,
+    color: T.secondary,
   },
   buttonGroup: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
+    paddingHorizontal: 20,
+    paddingBottom: 28,
     gap: 12,
     alignItems: 'center',
   },
-  button: {
-    backgroundColor: BRAND,
-    paddingVertical: 14,
-    borderRadius: 12,
+  cameraRow: {
+    flexDirection: 'row',
+    gap: 12,
     width: '100%',
+  },
+  halfBtn: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: BRAND,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: GLASS.bgStrong,
+    borderWidth: 1,
+    borderColor: GLASS.border,
+  },
+  halfBtnIcon: {
+    fontSize: 18,
+  },
+  halfBtnText: {
+    color: T.primary,
+    fontSize: 15,
+    fontFamily: F.semiBold,
   },
   processBtn: {
-    backgroundColor: '#16A34A',
-    shadowColor: '#16A34A',
+    backgroundColor: GREEN,
+    paddingVertical: 15,
+    borderRadius: 14,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  buttonText: {
-    color: '#FFFFFF',
+  processBtnText: {
+    color: BG,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: F.bold,
+    letterSpacing: 0.3,
   },
   clearText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    fontWeight: '500',
+    fontSize: 13,
+    fontFamily: F.medium,
+    color: T.muted,
   },
   joinBtn: {
     width: '100%',
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: BRAND,
+    paddingVertical: 15,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: GLASS.border,
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: GLASS.bg,
   },
   joinBtnText: {
-    color: BRAND,
-    fontSize: 16,
-    fontWeight: '600',
+    color: T.secondary,
+    fontSize: 15,
+    fontFamily: F.semiBold,
   },
   joinInputGroup: {
     width: '100%',
     gap: 10,
   },
   joinInput: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
+    backgroundColor: INPUT.bg,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: INPUT.border,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontSize: 22,
+    fontFamily: F.bold,
+    color: GREEN,
     textAlign: 'center',
-    letterSpacing: 4,
+    letterSpacing: 6,
     width: '100%',
   },
   joinActions: {
@@ -346,31 +380,33 @@ const styles = StyleSheet.create({
   joinCancelBtn: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: GLASS.border,
     alignItems: 'center',
+    backgroundColor: GLASS.bg,
   },
   joinCancelText: {
     fontSize: 15,
-    color: '#9CA3AF',
-    fontWeight: '600',
+    fontFamily: F.medium,
+    color: T.muted,
   },
   joinConfirmBtn: {
     flex: 2,
     paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: BRAND,
+    borderRadius: 14,
+    backgroundColor: GREEN,
     alignItems: 'center',
-    shadowColor: BRAND,
+    shadowColor: GREEN,
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 4,
   },
   joinConfirmText: {
     fontSize: 15,
-    color: '#FFFFFF',
-    fontWeight: '700',
+    fontFamily: F.bold,
+    color: BG,
+    letterSpacing: 0.3,
   },
 });

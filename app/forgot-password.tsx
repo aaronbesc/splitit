@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -17,61 +16,65 @@ import { useAuth } from '@/context/auth';
 import BlobBackground from '@/components/blob-background';
 import { BG, ERROR, F, GLASS, GREEN, INPUT, T } from '@/constants/design';
 
-export default function SignUpScreen() {
-  const { signUp } = useAuth();
-  const [name, setName] = useState('');
+export default function ForgotPasswordScreen() {
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  async function handleSignUp() {
-    if (!name || !email || !password || !confirmPassword) {
-      setError('Please fill in all fields.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+  async function handleReset() {
+    if (!email.trim()) {
+      setError('Please enter your email address.');
       return;
     }
     setError(null);
     setLoading(true);
-    const { error, needsConfirmation } = await signUp(email, password, name);
+    const { error: resetError } = await resetPassword(email.trim());
     setLoading(false);
-    if (error) {
-      setError(error);
-    } else if (needsConfirmation) {
-      setConfirming(true);
+    if (resetError) {
+      setError(resetError);
+    } else {
+      setSent(true);
     }
   }
 
-  if (confirming) {
+  // ── Confirmation state ────────────────────────────────────────────────────
+  if (sent) {
     return (
       <SafeAreaView style={styles.container}>
         <BlobBackground />
         <View style={styles.confirmContainer}>
           <View style={styles.confirmIconWrapper}>
-            <Text style={styles.confirmIcon}>✉️</Text>
+            <Text style={styles.confirmIcon}>🔑</Text>
           </View>
-          <Text style={styles.confirmTitle}>Check your email</Text>
+          <Text style={styles.confirmTitle}>Check your inbox</Text>
           <Text style={styles.confirmSubtitle}>
-            We sent a confirmation link to{'\n'}
+            We sent a password reset link to{'\n'}
             <Text style={styles.confirmEmail}>{email}</Text>
           </Text>
-          <TouchableOpacity style={styles.primaryButton} onPress={() => router.replace('/')}>
+          <Text style={styles.confirmNote}>
+            Didn't receive it? Check your spam folder or try again.
+          </Text>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => router.replace('/')}
+            activeOpacity={0.85}
+          >
             <Text style={styles.primaryButtonText}>Back to Sign In</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => { setSent(false); setEmail(''); }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.retryText}>Try a different email</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
+  // ── Form ──────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
       <BlobBackground />
@@ -80,20 +83,22 @@ export default function SignUpScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={styles.inner}>
           {/* Back button */}
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()} disabled={loading}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            disabled={loading}
+          >
             <Text style={styles.backArrow}>←</Text>
           </TouchableOpacity>
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Join and start splitting bills instantly</Text>
+            <Text style={styles.title}>Forgot Password</Text>
+            <Text style={styles.subtitle}>
+              Enter the email address linked to your account and we'll send you a reset link.
+            </Text>
           </View>
 
           {/* Glass form card */}
@@ -103,21 +108,6 @@ export default function SignUpScreen() {
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             )}
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Full Name</Text>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder="Jane Doe"
-                placeholderTextColor={T.placeholder}
-                autoCapitalize="words"
-                returnKeyType="next"
-                editable={!loading}
-                testID="name-input"
-              />
-            </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
@@ -130,65 +120,34 @@ export default function SignUpScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                returnKeyType="next"
-                editable={!loading}
-                testID="email-input"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="At least 8 characters"
-                placeholderTextColor={T.placeholder}
-                secureTextEntry
-                returnKeyType="next"
-                editable={!loading}
-                testID="password-input"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirm Password</Text>
-              <TextInput
-                style={styles.input}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Re-enter your password"
-                placeholderTextColor={T.placeholder}
-                secureTextEntry
                 returnKeyType="done"
-                onSubmitEditing={handleSignUp}
+                onSubmitEditing={handleReset}
                 editable={!loading}
-                testID="confirm-password-input"
+                autoFocus
               />
             </View>
 
             <TouchableOpacity
               style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
-              onPress={handleSignUp}
+              onPress={handleReset}
               activeOpacity={0.85}
               disabled={loading}
-              testID="sign-up-button"
             >
               {loading
                 ? <ActivityIndicator color={BG} />
-                : <Text style={styles.primaryButtonText}>Create Account</Text>
+                : <Text style={styles.primaryButtonText}>Send Reset Link</Text>
               }
             </TouchableOpacity>
           </View>
 
           {/* Footer */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
+            <Text style={styles.footerText}>Remember your password? </Text>
             <TouchableOpacity onPress={() => router.back()} disabled={loading}>
               <Text style={styles.linkText}>Sign In</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -202,11 +161,12 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
+  inner: {
+    flex: 1,
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 48,
+    justifyContent: 'center',
   },
   backButton: {
     width: 38,
@@ -217,13 +177,13 @@ const styles = StyleSheet.create({
     borderColor: GLASS.border,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 28,
+    marginBottom: 36,
   },
   backArrow: {
     fontSize: 18,
     color: T.primary,
-    lineHeight: 22,
     fontFamily: F.medium,
+    lineHeight: 22,
   },
   header: {
     marginBottom: 28,
@@ -233,12 +193,13 @@ const styles = StyleSheet.create({
     fontFamily: F.bold,
     color: T.primary,
     letterSpacing: -0.5,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 15,
     fontFamily: F.regular,
     color: T.secondary,
+    lineHeight: 22,
   },
   glassCard: {
     backgroundColor: GLASS.bg,
@@ -319,6 +280,7 @@ const styles = StyleSheet.create({
     fontFamily: F.semiBold,
     color: GREEN,
   },
+
   // Confirmation screen
   confirmContainer: {
     flex: 1,
@@ -357,5 +319,17 @@ const styles = StyleSheet.create({
   confirmEmail: {
     color: GREEN,
     fontFamily: F.semiBold,
+  },
+  confirmNote: {
+    fontSize: 13,
+    fontFamily: F.regular,
+    color: T.muted,
+    textAlign: 'center',
+  },
+  retryText: {
+    fontSize: 14,
+    fontFamily: F.medium,
+    color: T.muted,
+    marginTop: 4,
   },
 });

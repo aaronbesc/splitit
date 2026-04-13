@@ -18,8 +18,7 @@ import { useAuth } from '@/context/auth';
 import { ReceiptJSON } from '../services/geminiService';
 import { saveReceipt } from '../services/receiptService';
 import { createSession } from '@/services/sessionService';
-
-const BRAND = '#5B6AF4';
+import { BG, ERROR, F, GLASS, GREEN, INPUT, T, WARN } from '@/constants/design';
 
 type EditableItem = {
   name: string;
@@ -72,8 +71,8 @@ export default function ReceiptReviewScreen() {
     await signOut();
     router.replace('/');
   }
-  const { data: rawData } = useLocalSearchParams<{ data: string }>();
 
+  const { data: rawData } = useLocalSearchParams<{ data: string }>();
   const parsed: ReceiptJSON = rawData ? JSON.parse(rawData) : null;
   const [form, setForm] = useState<EditableReceipt>(() =>
     parsed ? toEditable(parsed) : {
@@ -130,12 +129,7 @@ export default function ReceiptReviewScreen() {
         warnings: [],
       };
 
-      console.log('[handleSave] saving for user:', user.id);
-      console.log('[handleSave] payload:', JSON.stringify(receipt, null, 2));
-
       const { id: receiptId, error } = await saveReceipt(receipt, user.id);
-
-      console.log('[handleSave] result error:', error);
 
       if (error) {
         Alert.alert('Save Failed', error);
@@ -146,7 +140,6 @@ export default function ReceiptReviewScreen() {
         ]);
       }
     } catch (err) {
-      console.error('[handleSave] unexpected error:', err);
       Alert.alert('Error', String(err));
     } finally {
       setIsSaving(false);
@@ -206,7 +199,7 @@ export default function ReceiptReviewScreen() {
               value={form.merchantName}
               onChangeText={v => setField('merchantName', v)}
               placeholder="e.g. Joe's Crab Shack"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={T.placeholder}
             />
 
             <Text style={styles.label}>Address</Text>
@@ -215,7 +208,7 @@ export default function ReceiptReviewScreen() {
               value={form.address}
               onChangeText={v => setField('address', v)}
               placeholder="Street address"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={T.placeholder}
             />
 
             <Text style={styles.label}>Date / Time</Text>
@@ -224,7 +217,7 @@ export default function ReceiptReviewScreen() {
               value={form.dateTime}
               onChangeText={v => setField('dateTime', v)}
               placeholder="e.g. 2025-06-15 7:30 PM"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={T.placeholder}
             />
           </View>
 
@@ -234,21 +227,19 @@ export default function ReceiptReviewScreen() {
 
             {form.items.map((item, index) => (
               <View key={index} style={styles.itemCard}>
-                {/* Item name row */}
                 <View style={styles.itemNameRow}>
                   <TextInput
                     style={[styles.input, styles.itemNameInput]}
                     value={item.name}
                     onChangeText={v => setItemField(index, 'name', v)}
                     placeholder="Item name"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={T.placeholder}
                   />
                   <TouchableOpacity style={styles.removeBtn} onPress={() => removeItem(index)}>
                     <Text style={styles.removeBtnText}>✕</Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* Qty / Unit price / Line total */}
                 <View style={styles.itemMetaRow}>
                   <View style={styles.itemMetaCell}>
                     <Text style={styles.labelSm}>Qty</Text>
@@ -258,7 +249,7 @@ export default function ReceiptReviewScreen() {
                       onChangeText={v => setItemField(index, 'quantity', v)}
                       keyboardType="numeric"
                       placeholder="1"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor={T.placeholder}
                     />
                   </View>
                   <View style={styles.itemMetaCell}>
@@ -269,7 +260,7 @@ export default function ReceiptReviewScreen() {
                       onChangeText={v => setItemField(index, 'unitPrice', v)}
                       keyboardType="decimal-pad"
                       placeholder="0.00"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor={T.placeholder}
                     />
                   </View>
                   <View style={styles.itemMetaCell}>
@@ -280,7 +271,7 @@ export default function ReceiptReviewScreen() {
                       onChangeText={v => setItemField(index, 'lineTotal', v)}
                       keyboardType="decimal-pad"
                       placeholder="0.00"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor={T.placeholder}
                     />
                   </View>
                 </View>
@@ -310,7 +301,7 @@ export default function ReceiptReviewScreen() {
                   onChangeText={v => setField(field, v)}
                   keyboardType="decimal-pad"
                   placeholder="0.00"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={T.placeholder}
                   textAlign="right"
                 />
               </View>
@@ -325,7 +316,7 @@ export default function ReceiptReviewScreen() {
             activeOpacity={0.85}
           >
             {isSaving
-              ? <ActivityIndicator color="#FFFFFF" />
+              ? <ActivityIndicator color={BG} />
               : <Text style={styles.saveBtnText}>Save to Database</Text>
             }
           </TouchableOpacity>
@@ -346,7 +337,7 @@ export default function ReceiptReviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BG,
   },
 
   // Header
@@ -357,7 +348,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: GLASS.border,
   },
   backBtn: {
     flexDirection: 'row',
@@ -367,34 +358,36 @@ const styles = StyleSheet.create({
   },
   backArrow: {
     fontSize: 28,
-    color: BRAND,
+    color: GREEN,
     lineHeight: 30,
-    fontWeight: '300',
+    fontFamily: F.regular,
   },
   backText: {
-    fontSize: 16,
-    color: BRAND,
-    fontWeight: '500',
+    fontSize: 15,
+    color: GREEN,
+    fontFamily: F.medium,
   },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
     fontSize: 17,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontFamily: F.bold,
+    color: T.primary,
   },
   signOutBtn: {
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 8,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: 'rgba(220,38,38,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(220,38,38,0.22)',
     minWidth: 60,
     alignItems: 'center',
   },
   signOutText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#DC2626',
+    fontSize: 12,
+    fontFamily: F.semiBold,
+    color: '#FC8181',
   },
 
   // Content
@@ -404,21 +397,25 @@ const styles = StyleSheet.create({
   },
   pageSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    fontFamily: F.regular,
+    color: T.muted,
     marginBottom: 20,
   },
 
   // Warnings
   warningBox: {
-    backgroundColor: '#FFFBEB',
-    borderRadius: 10,
+    backgroundColor: WARN.bg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: WARN.border,
     padding: 12,
     marginBottom: 20,
     gap: 4,
   },
   warningText: {
-    color: '#92400E',
+    color: WARN.text,
     fontSize: 13,
+    fontFamily: F.regular,
   },
 
   // Sections
@@ -426,36 +423,45 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontSize: 12,
+    fontFamily: F.semiBold,
+    color: T.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
     marginBottom: 14,
-    paddingBottom: 8,
+    paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: GLASS.borderDim,
   },
 
   // Fields
   label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
+    fontSize: 12,
+    fontFamily: F.medium,
+    color: T.muted,
     marginBottom: 5,
     marginTop: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   labelSm: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#6B7280',
+    fontFamily: F.medium,
+    color: T.muted,
     marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   input: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 10,
+    backgroundColor: INPUT.bg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: INPUT.border,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#1C1C1E',
+    fontFamily: F.regular,
+    color: T.primary,
   },
   inputSm: {
     paddingHorizontal: 10,
@@ -465,12 +471,12 @@ const styles = StyleSheet.create({
 
   // Items
   itemCard: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    backgroundColor: GLASS.bg,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: GLASS.border,
     padding: 12,
     marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
     gap: 10,
   },
   itemNameRow: {
@@ -485,14 +491,16 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 8,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: ERROR.bg,
+    borderWidth: 1,
+    borderColor: ERROR.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   removeBtnText: {
-    color: '#DC2626',
-    fontSize: 14,
-    fontWeight: '700',
+    color: ERROR.text,
+    fontSize: 13,
+    fontFamily: F.bold,
   },
   itemMetaRow: {
     flexDirection: 'row',
@@ -504,15 +512,15 @@ const styles = StyleSheet.create({
   addItemBtn: {
     marginTop: 6,
     paddingVertical: 13,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: BRAND,
+    borderColor: GLASS.border,
     borderStyle: 'dashed',
     alignItems: 'center',
   },
   addItemText: {
-    color: BRAND,
-    fontWeight: '600',
+    color: T.secondary,
+    fontFamily: F.semiBold,
     fontSize: 14,
   },
 
@@ -534,35 +542,37 @@ const styles = StyleSheet.create({
 
   // Buttons
   saveBtn: {
-    backgroundColor: BRAND,
+    backgroundColor: GREEN,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     marginBottom: 12,
-    shadowColor: BRAND,
+    shadowColor: GREEN,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
   },
   saveBtnDisabled: {
     opacity: 0.6,
   },
   saveBtnText: {
-    color: '#FFFFFF',
+    color: BG,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: F.bold,
+    letterSpacing: 0.3,
   },
   cancelBtn: {
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderWidth: 1,
+    borderColor: GLASS.border,
+    backgroundColor: GLASS.bg,
   },
   cancelBtnText: {
-    color: '#9CA3AF',
+    color: T.muted,
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: F.medium,
   },
 });

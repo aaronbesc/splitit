@@ -26,8 +26,7 @@ import {
   unclaimItem,
   updateSessionStatus,
 } from '@/services/sessionService';
-
-const BRAND = '#5B6AF4';
+import { BG, F, GLASS, GREEN, T } from '@/constants/design';
 
 export default function SessionClaimScreen() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
@@ -40,7 +39,6 @@ export default function SessionClaimScreen() {
   const [isFinishing, setIsFinishing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Keep a ref so Realtime callbacks can snapshot current state
   const claimsRef = useRef<ItemClaim[]>([]);
   const participantsRef = useRef<SessionParticipant[]>([]);
   claimsRef.current = claims;
@@ -68,17 +66,10 @@ export default function SessionClaimScreen() {
 
     init();
 
-    // Subscribe to claim inserts
     const claimsInsertChannel = supabase
       .channel(`session-claims-insert-${sessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'item_claims',
-          filter: `session_id=eq.${sessionId}`,
-        },
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'item_claims', filter: `session_id=eq.${sessionId}` },
         (payload) => {
           const newClaim = payload.new as ItemClaim;
           setClaims((prev) => {
@@ -86,43 +77,26 @@ export default function SessionClaimScreen() {
             return [...prev, newClaim];
           });
         }
-      )
-      .subscribe();
+      ).subscribe();
 
-    // Subscribe to claim deletes
     const claimsDeleteChannel = supabase
       .channel(`session-claims-delete-${sessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'item_claims',
-          filter: `session_id=eq.${sessionId}`,
-        },
+      .on('postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'item_claims', filter: `session_id=eq.${sessionId}` },
         (payload) => {
           const removed = payload.old as ItemClaim;
           setClaims((prev) => prev.filter((c) => c.id !== removed.id));
         }
-      )
-      .subscribe();
+      ).subscribe();
 
-    // Subscribe to session status changes
     const sessionChannel = supabase
       .channel(`session-claim-status-${sessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'sessions',
-          filter: `id=eq.${sessionId}`,
-        },
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` },
         (payload) => {
           const updated = payload.new as Session;
           setSession(updated);
           if (updated.status === 'finished') {
-            // Snapshot current state for summary
             const currentClaims = claimsRef.current;
             const currentParticipants = participantsRef.current;
             router.replace({
@@ -132,15 +106,14 @@ export default function SessionClaimScreen() {
                   sessionId,
                   myUserId: user!.id,
                   participants: currentParticipants,
-                  receipt: receipt,
+                  receipt: receiptRef.current,
                   claims: currentClaims,
                 }),
               },
             });
           }
         }
-      )
-      .subscribe();
+      ).subscribe();
 
     return () => {
       supabase.removeChannel(claimsInsertChannel);
@@ -149,8 +122,6 @@ export default function SessionClaimScreen() {
     };
   }, [sessionId, user]);
 
-  // Re-subscribe when receipt loads (needed for the 'finished' handler closure)
-  // The receipt ref keeps the value fresh
   const receiptRef = useRef<ReceiptForSession | null>(null);
   receiptRef.current = receipt;
 
@@ -162,7 +133,6 @@ export default function SessionClaimScreen() {
     } else {
       await claimItem(sessionId, itemIndex, user.id);
     }
-    // Realtime updates state for everyone
   }
 
   async function handleFinish() {
@@ -173,7 +143,6 @@ export default function SessionClaimScreen() {
       Alert.alert('Error', error);
       setIsFinishing(false);
     }
-    // Navigation handled by Realtime listener
   }
 
   function getClaimantsForItem(itemIndex: number): string[] {
@@ -189,7 +158,7 @@ export default function SessionClaimScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={BRAND} style={{ marginTop: 60 }} />
+        <ActivityIndicator size="large" color={GREEN} style={{ marginTop: 60 }} />
       </SafeAreaView>
     );
   }
@@ -222,7 +191,7 @@ export default function SessionClaimScreen() {
             >
               <View style={styles.itemRow}>
                 <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={[styles.itemName, isMine && styles.itemNameClaimed]}>{item.name}</Text>
                   {claimants.length > 0 && (
                     <Text style={styles.claimants}>
                       {claimants.join(', ')}
@@ -231,7 +200,9 @@ export default function SessionClaimScreen() {
                   )}
                 </View>
                 <View style={styles.itemPriceCol}>
-                  <Text style={styles.itemLineTotal}>${lineTotal.toFixed(2)}</Text>
+                  <Text style={[styles.itemLineTotal, isMine && styles.itemLineTotalClaimed]}>
+                    ${lineTotal.toFixed(2)}
+                  </Text>
                   {claimants.length > 1 && (
                     <Text style={styles.itemSplitPrice}>${splitAmount.toFixed(2)} ea</Text>
                   )}
@@ -239,14 +210,14 @@ export default function SessionClaimScreen() {
               </View>
               {isMine && (
                 <View style={styles.claimedBadge}>
-                  <Text style={styles.claimedBadgeText}>Claimed</Text>
+                  <Text style={styles.claimedBadgeText}>✓ Claimed</Text>
                 </View>
               )}
             </TouchableOpacity>
           );
         })}
 
-        {/* Totals summary row */}
+        {/* Totals */}
         {receipt && (
           <View style={styles.totalsCard}>
             {receipt.subtotal != null && (
@@ -284,7 +255,7 @@ export default function SessionClaimScreen() {
             activeOpacity={0.85}
           >
             {isFinishing
-              ? <ActivityIndicator color="#FFFFFF" />
+              ? <ActivityIndicator color={BG} />
               : <Text style={styles.finishBtnText}>Finish & See Totals</Text>
             }
           </TouchableOpacity>
@@ -292,7 +263,7 @@ export default function SessionClaimScreen() {
 
         {!isHost && (
           <View style={styles.waitingRow}>
-            <ActivityIndicator size="small" color={BRAND} />
+            <ActivityIndicator size="small" color={GREEN} />
             <Text style={styles.waitingText}>Waiting for host to finish…</Text>
           </View>
         )}
@@ -304,23 +275,24 @@ export default function SessionClaimScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: BG,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: GLASS.border,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontFamily: F.bold,
+    color: T.primary,
   },
   headerSub: {
     fontSize: 13,
-    color: '#6B7280',
+    fontFamily: F.regular,
+    color: T.muted,
     marginTop: 2,
   },
   content: {
@@ -329,15 +301,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   itemCard: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    backgroundColor: GLASS.bg,
+    borderRadius: 14,
     padding: 14,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
+    borderWidth: 1.5,
+    borderColor: GLASS.border,
   },
   itemCardClaimed: {
-    borderColor: BRAND,
-    backgroundColor: '#EEF2FF',
+    borderColor: GREEN,
+    backgroundColor: 'rgba(0,232,150,0.07)',
   },
   itemRow: {
     flexDirection: 'row',
@@ -350,12 +322,16 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontFamily: F.semiBold,
+    color: T.primary,
+  },
+  itemNameClaimed: {
+    color: GREEN,
   },
   claimants: {
     fontSize: 12,
-    color: '#6B7280',
+    fontFamily: F.regular,
+    color: T.muted,
   },
   itemPriceCol: {
     alignItems: 'flex-end',
@@ -363,30 +339,35 @@ const styles = StyleSheet.create({
   },
   itemLineTotal: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontFamily: F.bold,
+    color: T.primary,
+  },
+  itemLineTotalClaimed: {
+    color: GREEN,
   },
   itemSplitPrice: {
     fontSize: 12,
-    color: BRAND,
-    fontWeight: '600',
+    fontFamily: F.semiBold,
+    color: T.muted,
   },
   claimedBadge: {
     marginTop: 8,
     alignSelf: 'flex-start',
-    backgroundColor: BRAND,
+    backgroundColor: GREEN,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
   claimedBadgeText: {
     fontSize: 11,
-    color: '#FFFFFF',
-    fontWeight: '700',
+    fontFamily: F.bold,
+    color: BG,
   },
   totalsCard: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
+    backgroundColor: GLASS.bgStrong,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: GLASS.border,
     padding: 16,
     marginTop: 6,
     gap: 8,
@@ -397,48 +378,50 @@ const styles = StyleSheet.create({
   },
   totalsLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    fontFamily: F.regular,
+    color: T.muted,
   },
   totalsValue: {
     fontSize: 14,
-    color: '#1C1C1E',
-    fontWeight: '500',
+    fontFamily: F.medium,
+    color: T.secondary,
   },
   totalsRowTotal: {
     marginTop: 4,
-    paddingTop: 8,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: GLASS.border,
   },
   totalsTotalLabel: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontFamily: F.bold,
+    color: T.primary,
   },
   totalsTotalValue: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontFamily: F.bold,
+    color: GREEN,
   },
   finishBtn: {
-    backgroundColor: '#16A34A',
+    backgroundColor: GREEN,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#16A34A',
+    shadowColor: GREEN,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
   },
   finishBtnDisabled: {
     opacity: 0.6,
   },
   finishBtnText: {
-    color: '#FFFFFF',
+    color: BG,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: F.bold,
+    letterSpacing: 0.3,
   },
   waitingRow: {
     flexDirection: 'row',
@@ -449,6 +432,7 @@ const styles = StyleSheet.create({
   },
   waitingText: {
     fontSize: 15,
-    color: '#6B7280',
+    fontFamily: F.regular,
+    color: T.muted,
   },
 });
