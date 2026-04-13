@@ -1,5 +1,6 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,12 +13,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 
 import { useAuth } from '@/context/auth';
+import { findSessionByCode, joinSession } from '@/services/sessionService';
 import { extractReceiptWithGemini } from '../../services/geminiService';
 import { performOCR } from '../../services/ocrService';
-import { findSessionByCode, joinSession } from '@/services/sessionService';
 import { BG, F, GLASS, GREEN, INPUT, T } from '@/constants/design';
 
 export default function ScannerScreen() {
