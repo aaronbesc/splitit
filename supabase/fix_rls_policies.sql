@@ -1,160 +1,141 @@
 -- =============================================================================
--- Split It — Complete RLS Policy Fix
+-- Split It — RLS Policy Fix v2 (FORCE ROW SECURITY safe)
 -- Run this entire script in Supabase Dashboard → SQL Editor
 -- =============================================================================
--- Root cause: session_participants SELECT policies that query session_participants
--- themselves cause infinite recursion. Fix: use a SECURITY DEFINER helper
--- function that bypasses RLS for the participant check.
+-- Why the previous fix failed:
+--   Supabase enables FORCE ROW SECURITY on tables, which means even a
+--   SECURITY DEFINER function running as the postgres superuser is still
+--   subject to RLS when it queries those tables. The function still triggered
+--   the SELECT policy on session_participants, causing infinite recursion.
+--
+-- The only guaranteed fix:
+--   Never query session_participants from within a session_participants policy.
+--   Use only direct column checks or queries to OTHER tables (sessions).
+--   The sessions SELECT policy must also never reference session_participants.
 -- =============================================================================
 
 
--- ─── Step 1: Helper function (bypasses RLS — no recursion) ───────────────────
--- Called inside RLS policies to check if the current user is a participant
--- in a given session. SECURITY DEFINER runs as the function owner, skipping
--- the RLS check that would otherwise recurse.
-
-CREATE OR REPLACE FUNCTION public.is_session_participant(p_session_id uuid)
-RETURNS boolean
-LANGUAGE sql
-SECURITY DEFINER
-STABLE
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.session_participants
-    WHERE session_id = p_session_id
-      AND user_id = auth.uid()
-  );
-$$;
+-- ─── Step 1: Drop the broken helper function ─────────────────────────────────
+DROP FUNCTION IF EXISTS public.is_session_participant(uuid) CASCADE;
 
 
--- ─── Step 2: sessions ────────────────────────────────────────────────────────
+-- ─── Step 2: Drop ALL existing policies (by name — catches everything) ───────
+-- Uses dynamic SQL so we don't have to guess policy names.
 
-DROP POLICY IF EXISTS "sessions_insert"                       ON sessions;
-DROP POLICY IF EXISTS "sessions_select"                       ON sessions;
-DROP POLICY IF EXISTS "sessions_update"                       ON sessions;
--- Drop any legacy names that may exist:
-DROP POLICY IF EXISTS "Users can create sessions"             ON sessions;
-DROP POLICY IF EXISTS "Users can view sessions"               ON sessions;
-DROP POLICY IF EXISTS "Host can update session status"        ON sessions;
-DROP POLICY IF EXISTS "Enable read access for all users"      ON sessions;
+DO $$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN
+    SELECT tablename, policyname
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename IN ('sessions', 'session_participants', 'item_claims', 'receipts')
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename);
+    RAISE NOTICE 'Dropped: % on %', r.policyname, r.tablename;
+  END LOOP;
+END $$;
 
--- Any authenticated user can create a session (host_id must be themselves)
-CREATE POLICY "sessions_insert" ON sessions
-  FOR INSERT TO authenticated
-  WITH CHECK (host_id = auth.uid());
 
--- Three groups can read a session:
---   1. The host (always)
---   2. Existing participants
---   3. Any authenticated user looking up a non-finished session to join
---      (they already need the 6-char code — this doesn't leak private data)
+-- ─── Step 3: sessions ────────────────────────────────────────────────────────
+
+-- SELECT: any authenticated user can read any session.
+--   Needed because:
+--   (a) guests search by join code BEFORE they are participants
+--   (b) Realtime must deliver status→'finished' updates to all participants
+--   Sessions contain only join codes, statuses, and receipt IDs — not sensitive.
 CREATE POLICY "sessions_select" ON sessions
   FOR SELECT TO authenticated
-  USING (
-    host_id = auth.uid()
-    OR public.is_session_participant(id)
-    OR status IN ('lobby', 'active')
-  );
+  USING (true);
 
--- Only the host can change session status
+-- INSERT: host_id must match the caller
+CREATE POLICY "sessions_insert" ON sessions
+  FOR INSERT TO authenticated
+  WITH CHECK (host_id = (SELECT auth.uid()));
+
+-- UPDATE: only the host can change status
 CREATE POLICY "sessions_update" ON sessions
   FOR UPDATE TO authenticated
-  USING  (host_id = auth.uid())
-  WITH CHECK (host_id = auth.uid());
+  USING  (host_id = (SELECT auth.uid()))
+  WITH CHECK (host_id = (SELECT auth.uid()));
 
 
--- ─── Step 3: session_participants ────────────────────────────────────────────
+-- ─── Step 4: session_participants ────────────────────────────────────────────
 
-DROP POLICY IF EXISTS "session_participants_select"                    ON session_participants;
-DROP POLICY IF EXISTS "session_participants_insert"                    ON session_participants;
-DROP POLICY IF EXISTS "session_participants_delete"                    ON session_participants;
--- Drop any legacy names:
-DROP POLICY IF EXISTS "Users can join sessions"                        ON session_participants;
-DROP POLICY IF EXISTS "Users can view session participants"            ON session_participants;
-DROP POLICY IF EXISTS "Participants can view other participants"       ON session_participants;
-DROP POLICY IF EXISTS "Enable read access for all users"               ON session_participants;
-DROP POLICY IF EXISTS "Enable insert for authenticated users only"     ON session_participants;
-
--- Read: only participants of a session can see who else is in it.
--- Uses is_session_participant (SECURITY DEFINER) → no recursion.
+-- SELECT: any authenticated user can read participant lists.
+--   Needed because:
+--   (a) the lobby shows everyone who has joined — all participants must see this
+--   (b) Realtime INSERT events must be delivered to all lobby members
+--   (c) session_participants only stores display_name + user_id — not sensitive
+--   Crucially: USING (true) means we NEVER query session_participants from
+--   within this policy → zero recursion possible.
 CREATE POLICY "session_participants_select" ON session_participants
   FOR SELECT TO authenticated
-  USING (public.is_session_participant(session_id));
+  USING (true);
 
--- Insert: authenticated users can add themselves (join).
--- Also covers the host being inserted during createSession.
+-- INSERT: you can only add yourself
 CREATE POLICY "session_participants_insert" ON session_participants
   FOR INSERT TO authenticated
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (user_id = (SELECT auth.uid()));
 
--- Delete: users can remove themselves (leave / cleanup).
+-- DELETE: you can only remove yourself
 CREATE POLICY "session_participants_delete" ON session_participants
   FOR DELETE TO authenticated
-  USING (user_id = auth.uid());
+  USING (user_id = (SELECT auth.uid()));
 
 
--- ─── Step 4: item_claims ─────────────────────────────────────────────────────
+-- ─── Step 5: item_claims ─────────────────────────────────────────────────────
 
-DROP POLICY IF EXISTS "item_claims_select"                             ON item_claims;
-DROP POLICY IF EXISTS "item_claims_insert"                             ON item_claims;
-DROP POLICY IF EXISTS "item_claims_delete"                             ON item_claims;
--- Drop any legacy names:
-DROP POLICY IF EXISTS "Users can claim items"                          ON item_claims;
-DROP POLICY IF EXISTS "Users can view claims"                          ON item_claims;
-DROP POLICY IF EXISTS "Users can unclaim items"                        ON item_claims;
-DROP POLICY IF EXISTS "Enable read access for all users"               ON item_claims;
-
--- Participants can see all claims in their session
+-- SELECT: any authenticated user can read claims.
+--   Needed because all participants must see each other's claims in real time.
+--   Realtime DELETE events (unclaim) must also be delivered to all.
 CREATE POLICY "item_claims_select" ON item_claims
   FOR SELECT TO authenticated
-  USING (public.is_session_participant(session_id));
+  USING (true);
 
--- Participants can claim items in sessions they're in (must be themselves)
+-- INSERT: you can only claim as yourself; session must be active
 CREATE POLICY "item_claims_insert" ON item_claims
   FOR INSERT TO authenticated
   WITH CHECK (
-    user_id = auth.uid()
-    AND public.is_session_participant(session_id)
-  );
-
--- Users can only delete their own claims
-CREATE POLICY "item_claims_delete" ON item_claims
-  FOR DELETE TO authenticated
-  USING (user_id = auth.uid());
-
-
--- ─── Step 5: receipts ────────────────────────────────────────────────────────
--- Guests need to read the receipt during the claim phase.
--- The original policy only allowed the owner — add a second SELECT policy
--- for session participants.
-
-DROP POLICY IF EXISTS "receipts_select_participants"                   ON receipts;
--- Keep existing owner policies in place; just add the participant policy:
-
-CREATE POLICY "receipts_select_participants" ON receipts
-  FOR SELECT TO authenticated
-  USING (
-    -- Original: owner can always read their receipt
-    user_id = auth.uid()
-    -- New: anyone who is a participant in a session that uses this receipt
-    OR EXISTS (
-      SELECT 1
-      FROM public.sessions s
-      WHERE s.receipt_id = receipts.id
-        AND public.is_session_participant(s.id)
+    user_id = (SELECT auth.uid())
+    AND EXISTS (
+      SELECT 1 FROM public.sessions
+      WHERE id = item_claims.session_id
+        AND status = 'active'
     )
   );
 
--- Note: if you already have a "Users can view their own receipts" policy that
--- only checks (auth.uid() = user_id), you can either drop it and rely solely
--- on this new combined policy, or leave both — Supabase uses OR between policies.
+-- DELETE: you can only remove your own claims
+CREATE POLICY "item_claims_delete" ON item_claims
+  FOR DELETE TO authenticated
+  USING (user_id = (SELECT auth.uid()));
 
 
--- ─── Verification ─────────────────────────────────────────────────────────────
--- After running, confirm with:
---   SELECT schemaname, tablename, policyname, cmd, qual
---   FROM pg_policies
---   WHERE tablename IN ('sessions','session_participants','item_claims','receipts')
---   ORDER BY tablename, policyname;
+-- ─── Step 6: receipts ────────────────────────────────────────────────────────
+-- Guests need to read the receipt during the claim phase.
+-- We check the sessions table (NOT session_participants) — no recursion.
+
+CREATE POLICY "receipts_select" ON receipts
+  FOR SELECT TO authenticated
+  USING (
+    -- Owner always reads their own receipts
+    user_id = (SELECT auth.uid())
+    -- Anyone can read a receipt that belongs to an active session
+    OR EXISTS (
+      SELECT 1 FROM public.sessions
+      WHERE receipt_id = receipts.id
+        AND status = 'active'
+    )
+  );
+
+CREATE POLICY "receipts_insert" ON receipts
+  FOR INSERT TO authenticated
+  WITH CHECK (user_id = (SELECT auth.uid()));
+
+
+-- ─── Verify: run this SELECT after to confirm all policies look right ─────────
+SELECT tablename, policyname, cmd, qual
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename IN ('sessions', 'session_participants', 'item_claims', 'receipts')
+ORDER BY tablename, cmd;

@@ -105,9 +105,13 @@ export async function joinSession(
 ): Promise<{ error: string | null }> {
   const { error } = await supabase
     .from('session_participants')
-    .upsert({ session_id: sessionId, user_id: userId, display_name: displayName }, { onConflict: 'session_id,user_id' });
+    .insert({ session_id: sessionId, user_id: userId, display_name: displayName });
 
-  return { error: error?.message ?? null };
+  // 23505 = unique_violation: already a participant, treat as success
+  if (error && error.code !== '23505') {
+    return { error: error.message };
+  }
+  return { error: null };
 }
 
 export async function getParticipants(
