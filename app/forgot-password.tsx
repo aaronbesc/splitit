@@ -57,7 +57,7 @@ export default function ForgotPasswordScreen() {
             Didn't receive it? Check your spam folder or try again.
           </Text>
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={[styles.primaryButton, styles.confirmButton]}
             onPress={() => router.replace('/')}
             activeOpacity={0.85}
           >
@@ -331,5 +331,9 @@ const styles = StyleSheet.create({
     fontFamily: F.medium,
     color: T.muted,
     marginTop: 4,
+  },
+  confirmButton: {
+    alignSelf: 'stretch',
+    marginTop: 8,
   },
 });

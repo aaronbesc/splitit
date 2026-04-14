@@ -64,7 +64,7 @@ export default function SignUpScreen() {
             We sent a confirmation link to{'\n'}
             <Text style={styles.confirmEmail}>{email}</Text>
           </Text>
-          <TouchableOpacity style={styles.primaryButton} onPress={() => router.replace('/')}>
+          <TouchableOpacity style={[styles.primaryButton, styles.confirmButton]} onPress={() => router.replace('/')}>
             <Text style={styles.primaryButtonText}>Back to Sign In</Text>
           </TouchableOpacity>
         </View>
@@ -357,5 +357,9 @@ const styles = StyleSheet.create({
   confirmEmail: {
     color: GREEN,
     fontFamily: F.semiBold,
+  },
+  confirmButton: {
+    alignSelf: 'stretch',
+    marginTop: 8,
   },
 });

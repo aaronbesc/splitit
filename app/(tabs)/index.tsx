@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/auth';
 import { findSessionByCode, joinSession } from '@/services/sessionService';
 import { extractReceiptWithGemini } from '../../services/geminiService';
-import { performOCR } from '../../services/ocrService';
+import ReceiptLoadingOverlay from '@/components/receipt-loading';
 import { BG, F, GLASS, GREEN, INPUT, T } from '@/constants/design';
 
 export default function ScannerScreen() {
@@ -82,17 +82,20 @@ export default function ScannerScreen() {
     if (!image) return;
     setIsProcessing(true);
     try {
+      // Higher resolution + quality: Gemini reads pixels directly, so sharpness matters.
+      // base64:true gets the encoded data in one step — no separate file read needed.
       const manipulatedImage = await ImageManipulator.manipulateAsync(
         image,
-        [{ resize: { width: 800 } }],
-        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
+        [{ resize: { width: 1200 } }],
+        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG, base64: true }
       );
-      const rawText = await performOCR(manipulatedImage.uri);
-      if (!rawText) {
-        Alert.alert('OCR Failed', 'No text returned. Check your terminal logs.');
+
+      if (!manipulatedImage.base64) {
+        Alert.alert('Processing Failed', 'Could not read image data.');
         return;
       }
-      const structuredData = await extractReceiptWithGemini(rawText);
+
+      const structuredData = await extractReceiptWithGemini(manipulatedImage.base64);
       router.push({
         pathname: '/receipt-review',
         params: { data: JSON.stringify(structuredData) },
@@ -128,85 +131,81 @@ export default function ScannerScreen() {
         )}
       </View>
 
-      {isProcessing ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={GREEN} />
-          <Text style={styles.loadingText}>Scanning receipt…</Text>
+      <View style={styles.buttonGroup}>
+        <View style={styles.cameraRow}>
+          <TouchableOpacity style={styles.halfBtn} onPress={takePhoto} activeOpacity={0.85}>
+            <Text style={styles.halfBtnIcon}>📷</Text>
+            <Text style={styles.halfBtnText}>Camera</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.halfBtn} onPress={pickImage} activeOpacity={0.85}>
+            <Text style={styles.halfBtnIcon}>🖼</Text>
+            <Text style={styles.halfBtnText}>Gallery</Text>
+          </TouchableOpacity>
         </View>
-      ) : (
-        <View style={styles.buttonGroup}>
-          <View style={styles.cameraRow}>
-            <TouchableOpacity style={styles.halfBtn} onPress={takePhoto} activeOpacity={0.85}>
-              <Text style={styles.halfBtnIcon}>📷</Text>
-              <Text style={styles.halfBtnText}>Camera</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.halfBtn} onPress={pickImage} activeOpacity={0.85}>
-              <Text style={styles.halfBtnIcon}>🖼</Text>
-              <Text style={styles.halfBtnText}>Gallery</Text>
-            </TouchableOpacity>
-          </View>
 
-          {image && (
-            <>
-              <TouchableOpacity
-                style={styles.processBtn}
-                onPress={handleProcessReceipt}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.processBtnText}>Process Receipt</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => setImage(null)} activeOpacity={0.7}>
-                <Text style={styles.clearText}>Clear image</Text>
-              </TouchableOpacity>
-            </>
-          )}
-
-          {/* Join a Session */}
-          {!showJoinInput ? (
+        {image && (
+          <>
             <TouchableOpacity
-              style={styles.joinBtn}
-              onPress={() => setShowJoinInput(true)}
+              style={styles.processBtn}
+              onPress={handleProcessReceipt}
               activeOpacity={0.85}
             >
-              <Text style={styles.joinBtnText}>Join a Session</Text>
+              <Text style={styles.processBtnText}>Process Receipt</Text>
             </TouchableOpacity>
-          ) : (
-            <View style={styles.joinInputGroup}>
-              <TextInput
-                style={styles.joinInput}
-                value={joinCode}
-                onChangeText={(v) => setJoinCode(v.toUpperCase())}
-                placeholder="Enter 6-char code"
-                placeholderTextColor={T.placeholder}
-                autoCapitalize="characters"
-                maxLength={6}
-                autoFocus
-              />
-              <View style={styles.joinActions}>
-                <TouchableOpacity
-                  style={styles.joinCancelBtn}
-                  onPress={() => { setShowJoinInput(false); setJoinCode(''); }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.joinCancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.joinConfirmBtn, isJoining && { opacity: 0.6 }]}
-                  onPress={handleJoinByCode}
-                  disabled={isJoining}
-                  activeOpacity={0.85}
-                >
-                  {isJoining
-                    ? <ActivityIndicator color={BG} size="small" />
-                    : <Text style={styles.joinConfirmText}>Join</Text>
-                  }
-                </TouchableOpacity>
-              </View>
+
+            <TouchableOpacity onPress={() => setImage(null)} activeOpacity={0.7}>
+              <Text style={styles.clearText}>Clear image</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Join a Session */}
+        {!showJoinInput ? (
+          <TouchableOpacity
+            style={styles.joinBtn}
+            onPress={() => setShowJoinInput(true)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.joinBtnText}>Join a Session</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.joinInputGroup}>
+            <TextInput
+              style={styles.joinInput}
+              value={joinCode}
+              onChangeText={(v) => setJoinCode(v.toUpperCase())}
+              placeholder="Enter 6-char code"
+              placeholderTextColor={T.placeholder}
+              autoCapitalize="characters"
+              maxLength={6}
+              autoFocus
+            />
+            <View style={styles.joinActions}>
+              <TouchableOpacity
+                style={styles.joinCancelBtn}
+                onPress={() => { setShowJoinInput(false); setJoinCode(''); }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.joinCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.joinConfirmBtn, isJoining && { opacity: 0.6 }]}
+                onPress={handleJoinByCode}
+                disabled={isJoining}
+                activeOpacity={0.85}
+              >
+                {isJoining
+                  ? <ActivityIndicator color={BG} size="small" />
+                  : <Text style={styles.joinConfirmText}>Join</Text>
+                }
+              </TouchableOpacity>
             </View>
-          )}
-        </View>
-      )}
+          </View>
+        )}
+      </View>
+
+      {/* Full-screen loading overlay — covers everything while OCR + Gemini run */}
+      {isProcessing && <ReceiptLoadingOverlay />}
     </SafeAreaView>
   );
 }
@@ -276,16 +275,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: F.regular,
     color: 'rgba(255,255,255,0.22)',
-  },
-  loadingContainer: {
-    paddingVertical: 32,
-    alignItems: 'center',
-    gap: 14,
-  },
-  loadingText: {
-    fontSize: 15,
-    fontFamily: F.medium,
-    color: T.secondary,
   },
   buttonGroup: {
     paddingHorizontal: 20,
