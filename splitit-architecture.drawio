@@ -1,0 +1,160 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" version="29.4.0">
+  <diagram id="dAW3u-vxrD0u-IHlUL85" name="Página-1">
+    <mxGraphModel dx="2050" dy="1024" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0" adaptiveColors="auto">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="e_to_supabase_auth" edge="1" parent="1" source="svc_supabase_client" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3ECF8E;fontColor=#3ECF8E;fontSize=9;strokeWidth=2;" target="sup_auth" value="signIn / signUp / JWT">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=none;pointerEvents=0;" value="" vertex="1">
+          <mxGeometry height="1020" width="1400" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;" value="&lt;b&gt;&lt;font style=&quot;font-size:22px;&quot; color=&quot;#00E896&quot;&gt;Split It&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px;&quot; color=&quot;#AAAAAA&quot;&gt;Software Architecture&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="280" x="560" y="16" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_mobile" parent="1" style="swimlane;startSize=46;fillColor=#111111;strokeColor=#00E896;fontColor=#FFFFFF;html=1;rounded=1;arcSize=4;strokeWidth=2;" value="&lt;b&gt;&lt;font color=&quot;#00E896&quot;&gt;MOBILE CLIENT&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#888888&quot; style=&quot;font-size:10px;&quot;&gt;React Native + Expo Router&lt;/font&gt;" vertex="1">
+          <mxGeometry height="880" width="860" x="20" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_screens" parent="layer_mobile" style="swimlane;startSize=30;fillColor=#1A1A2E;strokeColor=#3A3A5C;fontColor=#CCCCCC;html=1;rounded=1;arcSize=4;" value="&lt;b&gt;&lt;font color=&quot;#CCCCCC&quot;&gt;SCREENS&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="280" width="820" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="scr_signin" parent="layer_screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E1E3A;strokeColor=#5B6AF4;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Sign In&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;index.tsx&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="110" x="16" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="scr_signup" parent="layer_screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E1E3A;strokeColor=#5B6AF4;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Sign Up&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;sign-up.tsx&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="110" x="146" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="scr_forgot" parent="layer_screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E1E3A;strokeColor=#5B6AF4;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Forgot Password&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;forgot-password.tsx&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="130" x="276" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="scr_scanner" parent="layer_screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#142414;strokeColor=#00E896;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Scanner&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;(tabs)/index.tsx&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="110" x="426" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="scr_review" parent="layer_screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#142414;strokeColor=#00E896;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Receipt Review&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;receipt-review.tsx&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="556" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="scr_lobby" parent="layer_screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#142414;strokeColor=#00E896;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Session Lobby&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;session-lobby.tsx&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="16" y="136" as="geometry" />
+        </mxCell>
+        <mxCell id="scr_claim" parent="layer_screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#142414;strokeColor=#00E896;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Session Claim&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;session-claim.tsx&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="156" y="136" as="geometry" />
+        </mxCell>
+        <mxCell id="scr_summary" parent="layer_screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#142414;strokeColor=#00E896;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Session Summary&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;session-summary.tsx&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="130" x="296" y="136" as="geometry" />
+        </mxCell>
+        <mxCell id="scr_join" parent="layer_screens" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#142414;strokeColor=#00E896;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Join Session&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;join/[id].tsx&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="110" x="446" y="136" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_context" parent="layer_mobile" style="swimlane;startSize=30;fillColor=#1A1A1A;strokeColor=#5B6AF4;fontColor=#CCCCCC;html=1;rounded=1;arcSize=4;" value="&lt;b&gt;&lt;font color=&quot;#CCCCCC&quot;&gt;STATE &amp;amp; CONTEXT&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="120" width="820" x="20" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="ctx_auth" parent="layer_context" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E1E3A;strokeColor=#5B6AF4;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;AuthProvider&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;context/auth.tsx&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;session · user · signIn/Up/Out/Reset&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="220" x="16" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ctx_router" parent="layer_context" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E1E3A;strokeColor=#5B6AF4;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Expo Router Guard&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;app/_layout.tsx&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;useSegments + redirect logic&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="200" x="256" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ctx_theme" parent="layer_context" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#888888;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Design Tokens&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;constants/design.ts&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;BG #050505 · GREEN #00E896&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="200" x="476" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_services" parent="layer_mobile" style="swimlane;startSize=30;fillColor=#1A1A1A;strokeColor=#F4A25B;fontColor=#CCCCCC;html=1;rounded=1;arcSize=4;" value="&lt;b&gt;&lt;font color=&quot;#CCCCCC&quot;&gt;SERVICES LAYER&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="200" width="820" x="20" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_gemini" parent="layer_services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2A1A0A;strokeColor=#F4A25B;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;geminiService&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;services/geminiService.ts&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;img → base64 → Gemini 2.5 Flash&lt;br&gt;→ ReceiptJSON + validateAndFix()&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="190" x="16" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_receipt" parent="layer_services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2A1A0A;strokeColor=#F4A25B;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;receiptService&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;services/receiptService.ts&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;saveReceipt()&lt;br&gt;→ receipts table CRUD&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="190" x="226" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_session" parent="layer_services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2A1A0A;strokeColor=#F4A25B;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;sessionService&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;services/sessionService.ts&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;sessions · participants · claims&lt;br&gt;createSession · joinSession · claimItem&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="200" x="436" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_supabase_client" parent="layer_services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2A1A0A;strokeColor=#F4A25B;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Supabase Client&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot;&gt;lib/supabase.ts&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;AsyncStorage (native)&lt;br&gt;localStorage (web)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="160" x="646" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_native" parent="layer_mobile" style="swimlane;startSize=30;fillColor=#1A1A1A;strokeColor=#888888;fontColor=#CCCCCC;html=1;rounded=1;arcSize=4;" value="&lt;b&gt;&lt;font color=&quot;#CCCCCC&quot;&gt;NATIVE MODULES&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="120" width="820" x="20" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="nat_imagepicker" parent="layer_native" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#222222;strokeColor=#888888;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;ImagePicker&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Camera / Gallery&lt;/font&gt;" vertex="1">
+          <mxGeometry height="56" width="140" x="16" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="nat_manipulator" parent="layer_native" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#222222;strokeColor=#888888;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;ImageManipulator&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Resize 1200px · base64&lt;/font&gt;" vertex="1">
+          <mxGeometry height="56" width="150" x="176" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="nat_qr" parent="layer_native" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#222222;strokeColor=#888888;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;QR Code SVG&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Session join link&lt;/font&gt;" vertex="1">
+          <mxGeometry height="56" width="140" x="346" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="nat_asyncstorage" parent="layer_native" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#222222;strokeColor=#888888;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;AsyncStorage&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Session persistence&lt;/font&gt;" vertex="1">
+          <mxGeometry height="56" width="140" x="506" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="nat_haptic" parent="layer_native" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#222222;strokeColor=#888888;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Haptic Feedback&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Tab interactions&lt;/font&gt;" vertex="1">
+          <mxGeometry height="56" width="140" x="666" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_backend" parent="1" style="swimlane;startSize=46;fillColor=#111111;strokeColor=#00E896;fontColor=#FFFFFF;html=1;rounded=1;arcSize=4;strokeWidth=2;" value="&lt;b&gt;&lt;font color=&quot;#00E896&quot;&gt;BACKEND &amp;amp; EXTERNAL APIS&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="880" width="460" x="920" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_supabase" parent="layer_backend" style="swimlane;startSize=42;fillColor=#0A1A0A;strokeColor=#3ECF8E;fontColor=#CCCCCC;html=1;rounded=1;arcSize=4;" value="&lt;b&gt;&lt;font color=&quot;#CCCCCC&quot;&gt;SUPABASE&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#888888&quot; style=&quot;font-size:9px;&quot;&gt;BaaS Platform&lt;/font&gt;" vertex="1">
+          <mxGeometry height="480" width="420" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sup_auth" parent="layer_supabase" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F2A1A;strokeColor=#3ECF8E;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Auth&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;signIn · signUp · signOut&lt;br&gt;resetPassword · onAuthStateChange&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="190" x="16" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="sup_db" parent="layer_supabase" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F2A1A;strokeColor=#3ECF8E;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;PostgreSQL Database&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;receipts · sessions&lt;br&gt;session_participants · item_claims&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="190" x="216" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="sup_rls" parent="layer_supabase" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F2A1A;strokeColor=#3ECF8E;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Row Level Security&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;auth.uid() scoped policies&lt;br&gt;fix_rls_policies.sql&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="190" x="16" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="sup_realtime" parent="layer_supabase" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F2A1A;strokeColor=#3ECF8E;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Realtime&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;postgres_changes WebSocket&lt;br&gt;session_participants · item_claims&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="190" x="216" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="db_receipts" parent="layer_supabase" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#0F2A1A;strokeColor=#3ECF8E;fontColor=#FFFFFF;" value="&lt;b&gt;receipts&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;id · user_id · merchant_name&lt;br&gt;items (JSONB) · subtotal · tax · tip&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="130" x="16" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="db_sessions" parent="layer_supabase" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#0F2A1A;strokeColor=#3ECF8E;fontColor=#FFFFFF;" value="&lt;b&gt;sessions&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;id · receipt_id · host_id&lt;br&gt;join_code · status&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="130" x="160" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="db_participants" parent="layer_supabase" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#0F2A1A;strokeColor=#3ECF8E;fontColor=#FFFFFF;" value="&lt;b&gt;session_participants&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;id · session_id · user_id&lt;br&gt;display_name&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="150" x="16" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="db_claims" parent="layer_supabase" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#0F2A1A;strokeColor=#3ECF8E;fontColor=#FFFFFF;" value="&lt;b&gt;item_claims&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;id · session_id · item_index&lt;br&gt;user_id · claimed_at&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="150" x="186" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_gemini" parent="layer_backend" style="swimlane;startSize=30;fillColor=#0A0A1A;strokeColor=#4285F4;fontColor=#CCCCCC;html=1;rounded=1;arcSize=4;" value="&lt;b&gt;&lt;font color=&quot;#CCCCCC&quot;&gt;GOOGLE AI&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="120" width="420" x="20" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="gemini_api" parent="layer_gemini" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F0F2A;strokeColor=#4285F4;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Gemini 2.5 Flash&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Vision API · generateContent&lt;br&gt;Structured JSON output + responseSchema&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="260" x="16" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="gemini_font" parent="layer_gemini" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F0F2A;strokeColor=#4285F4;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Space Grotesk&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Google Fonts&lt;br&gt;400 / 500 / 600 / 700&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="110" x="296" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_platform" parent="layer_backend" style="swimlane;startSize=30;fillColor=#1A1A1A;strokeColor=#888888;fontColor=#CCCCCC;html=1;rounded=1;arcSize=4;" value="&lt;b&gt;&lt;font color=&quot;#CCCCCC&quot;&gt;PLATFORM TARGETS&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="100" width="420" x="20" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="plat_ios" parent="layer_platform" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#222222;strokeColor=#888888;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;iOS&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Expo Go / Dev Build&lt;/font&gt;" vertex="1">
+          <mxGeometry height="46" width="110" x="16" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="plat_android" parent="layer_platform" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#222222;strokeColor=#888888;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Android&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Expo Go / Dev Build&lt;/font&gt;" vertex="1">
+          <mxGeometry height="46" width="110" x="146" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="plat_web" parent="layer_platform" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#222222;strokeColor=#888888;fontColor=#FFFFFF;arcSize=20;" value="&lt;b&gt;Web&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px;&quot; color=&quot;#888888&quot;&gt;Expo for Web&lt;/font&gt;" vertex="1">
+          <mxGeometry height="46" width="110" x="276" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_pub" parent="1" style="text;html=1;strokeColor=none;fillColor=none;" value="&lt;font color=&quot;#FFFFFF&quot; style=&quot;font-size:10px;&quot;&gt;■&lt;/font&gt;&lt;font color=&quot;#5B6AF4&quot; style=&quot;font-size:10px;&quot;&gt; Auth Screens (public)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="24" width="200" x="20" y="980" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_feat" parent="1" style="text;html=1;strokeColor=none;fillColor=none;" value="&lt;font color=&quot;#FFFFFF&quot; style=&quot;font-size:10px;&quot;&gt;■&lt;/font&gt;&lt;font color=&quot;#00E896&quot; style=&quot;font-size:10px;&quot;&gt; Feature Screens (authenticated)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="24" width="240" x="240" y="980" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_svc" parent="1" style="text;html=1;strokeColor=none;fillColor=none;" value="&lt;font color=&quot;#FFFFFF&quot; style=&quot;font-size:10px;&quot;&gt;■&lt;/font&gt;&lt;font color=&quot;#F4A25B&quot; style=&quot;font-size:10px;&quot;&gt; Services Layer&lt;/font&gt;" vertex="1">
+          <mxGeometry height="24" width="180" x="500" y="980" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_back" parent="1" style="text;html=1;strokeColor=none;fillColor=none;" value="&lt;font color=&quot;#FFFFFF&quot; style=&quot;font-size:10px;&quot;&gt;■&lt;/font&gt;&lt;font color=&quot;#3ECF8E&quot; style=&quot;font-size:10px;&quot;&gt; Supabase Backend&lt;/font&gt;" vertex="1">
+          <mxGeometry height="24" width="200" x="700" y="980" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

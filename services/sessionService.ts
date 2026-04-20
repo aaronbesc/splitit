@@ -8,6 +8,7 @@ export type Session = {
   host_id: string;
   join_code: string;
   status: SessionStatus;
+  paid_by_user_id: string | null;
   created_at: string;
 };
 
@@ -16,6 +17,7 @@ export type SessionParticipant = {
   session_id: string;
   user_id: string;
   display_name: string;
+  venmo_username: string | null;
   joined_at: string;
 };
 
@@ -24,6 +26,7 @@ export type ItemClaim = {
   session_id: string;
   item_index: number;
   user_id: string;
+  units: number;
   claimed_at: string;
 };
 
@@ -44,7 +47,8 @@ function generateJoinCode(): string {
 export async function createSession(
   receiptId: string,
   hostId: string,
-  hostName: string
+  hostName: string,
+  hostVenmo: string | null = null
 ): Promise<{ session: Session | null; error: string | null }> {
   for (let attempt = 0; attempt < 3; attempt++) {
     const joinCode = generateJoinCode();
@@ -61,7 +65,12 @@ export async function createSession(
 
     const { error: participantError } = await supabase
       .from('session_participants')
-      .insert({ session_id: session.id, user_id: hostId, display_name: hostName });
+      .insert({
+        session_id: session.id,
+        user_id: hostId,
+        display_name: hostName,
+        venmo_username: hostVenmo,
+      });
 
     if (participantError) return { session: null, error: participantError.message };
 
@@ -101,17 +110,34 @@ export async function getSession(
 export async function joinSession(
   sessionId: string,
   userId: string,
-  displayName: string
+  displayName: string,
+  venmoUsername: string | null = null
 ): Promise<{ error: string | null }> {
   const { error } = await supabase
     .from('session_participants')
-    .insert({ session_id: sessionId, user_id: userId, display_name: displayName });
+    .insert({
+      session_id: sessionId,
+      user_id: userId,
+      display_name: displayName,
+      venmo_username: venmoUsername,
+    });
 
   // 23505 = unique_violation: already a participant, treat as success
   if (error && error.code !== '23505') {
     return { error: error.message };
   }
   return { error: null };
+}
+
+export async function setSessionPayer(
+  sessionId: string,
+  payerUserId: string | null
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from('sessions')
+    .update({ paid_by_user_id: payerUserId })
+    .eq('id', sessionId);
+  return { error: error?.message ?? null };
 }
 
 export async function getParticipants(
@@ -154,13 +180,29 @@ export async function getItemClaims(
 export async function claimItem(
   sessionId: string,
   itemIndex: number,
-  userId: string
+  userId: string,
+  units: number = 1
 ): Promise<{ error: string | null }> {
   const { error } = await supabase
     .from('item_claims')
-    .upsert({ session_id: sessionId, item_index: itemIndex, user_id: userId }, { onConflict: 'session_id,item_index,user_id' });
+    .upsert(
+      { session_id: sessionId, item_index: itemIndex, user_id: userId, units },
+      { onConflict: 'session_id,item_index,user_id' }
+    );
 
   return { error: error?.message ?? null };
+}
+
+export async function setClaimUnits(
+  sessionId: string,
+  itemIndex: number,
+  userId: string,
+  units: number
+): Promise<{ error: string | null }> {
+  if (units <= 0) {
+    return unclaimItem(sessionId, itemIndex, userId);
+  }
+  return claimItem(sessionId, itemIndex, userId, units);
 }
 
 export async function unclaimItem(

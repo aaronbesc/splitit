@@ -148,7 +148,8 @@ export default function ReceiptReviewScreen() {
 
   async function handleStartSession(receiptId: string) {
     const displayName = user!.user_metadata?.full_name ?? user!.email?.split('@')[0] ?? 'Host';
-    const { session, error } = await createSession(receiptId, user!.id, displayName);
+    const venmo = (user!.user_metadata?.venmo_username as string | undefined) ?? null;
+    const { session, error } = await createSession(receiptId, user!.id, displayName, venmo);
     if (error || !session) { Alert.alert('Error', error ?? 'Could not create session.'); return; }
     router.replace({ pathname: '/session-lobby', params: { sessionId: session.id, isHost: 'true' } });
   }

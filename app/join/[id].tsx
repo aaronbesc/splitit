@@ -24,8 +24,9 @@ export default function JoinSessionScreen() {
 
     const displayName =
       user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'Guest';
+    const venmo = (user.user_metadata?.venmo_username as string | undefined) ?? null;
 
-    joinSession(id, user.id, displayName).then(({ error }) => {
+    joinSession(id, user.id, displayName, venmo).then(({ error }) => {
       if (error) {
         Alert.alert('Join Failed', error);
         router.replace('/(tabs)');

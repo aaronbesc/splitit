@@ -1,6 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
+  Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ItemClaim, ReceiptForSession, SessionParticipant } from '@/services/sessionService';
-import { BG, F, GLASS, GREEN, T } from '@/constants/design';
+import { BG, F, GLASS, GREEN, T, WARN } from '@/constants/design';
 
 type SummaryPayload = {
   sessionId: string;
@@ -18,13 +20,21 @@ type SummaryPayload = {
   participants: SessionParticipant[];
   receipt: ReceiptForSession;
   claims: ItemClaim[];
+  paidByUserId?: string | null;
 };
+
+function buildVenmoUrl(username: string, amount: number, note: string): string {
+  const cleanUsername = username.replace(/^@/, '').trim();
+  const amt = amount.toFixed(2);
+  return `https://venmo.com/${encodeURIComponent(cleanUsername)}?txn=pay&amount=${amt}&note=${encodeURIComponent(note)}`;
+}
 
 type ClaimedItemRow = {
   name: string;
   lineTotal: number;
   myShare: number;
-  claimantCount: number;
+  myUnits: number;
+  totalQty: number;
 };
 
 type Summary = {
@@ -42,10 +52,13 @@ function computeSummary(
   receipt: ReceiptForSession,
   claims: ItemClaim[]
 ): Summary {
-  const claimMap = new Map<number, Set<string>>();
+  // Group claims by item index
+  const claimsByItem = new Map<number, { userId: string; units: number }[]>();
   for (const c of claims) {
-    if (!claimMap.has(c.item_index)) claimMap.set(c.item_index, new Set());
-    claimMap.get(c.item_index)!.add(c.user_id);
+    const units = c.units ?? 1;
+    if (units <= 0) continue;
+    if (!claimsByItem.has(c.item_index)) claimsByItem.set(c.item_index, []);
+    claimsByItem.get(c.item_index)!.push({ userId: c.user_id, units });
   }
 
   let myItemSubtotal = 0;
@@ -54,15 +67,42 @@ function computeSummary(
 
   receipt.items.forEach((item, index) => {
     const lineTotal = item.lineTotal ?? 0;
-    const claimants = claimMap.get(index);
-    if (!claimants || claimants.size === 0) {
+    const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
+    const perUnit = qty > 0 ? lineTotal / qty : lineTotal;
+    const itemClaims = claimsByItem.get(index) ?? [];
+    const totalClaimedUnits = itemClaims.reduce((s, c) => s + c.units, 0);
+    const myUnits = itemClaims
+      .filter((c) => c.userId === myUserId)
+      .reduce((s, c) => s + c.units, 0);
+
+    // Fully unclaimed item: split across everyone
+    if (totalClaimedUnits <= 0) {
       const share = participants.length > 0 ? lineTotal / participants.length : lineTotal;
       myUnclaimedShare += share;
       myItemSubtotal += share;
-    } else if (claimants.has(myUserId)) {
-      const myShare = lineTotal / claimants.size;
-      myClaimedItems.push({ name: item.name, lineTotal, myShare, claimantCount: claimants.size });
+      return;
+    }
+
+    // My claimed portion
+    if (myUnits > 0) {
+      const myShare = myUnits * perUnit;
+      myClaimedItems.push({
+        name: item.name,
+        lineTotal,
+        myShare,
+        myUnits,
+        totalQty: qty,
+      });
       myItemSubtotal += myShare;
+    }
+
+    // Partially unclaimed remainder: split across everyone
+    const remainingUnits = Math.max(0, qty - totalClaimedUnits);
+    if (remainingUnits > 0 && participants.length > 0) {
+      const remainderCost = remainingUnits * perUnit;
+      const myPortion = remainderCost / participants.length;
+      myUnclaimedShare += myPortion;
+      myItemSubtotal += myPortion;
     }
   });
 
@@ -86,11 +126,33 @@ export default function SessionSummaryScreen() {
   const { payload: rawPayload } = useLocalSearchParams<{ payload: string }>();
 
   const parsed: SummaryPayload = JSON.parse(rawPayload ?? '{}');
-  const { myUserId, participants, receipt, claims } = parsed;
+  const { myUserId, participants, receipt, claims, paidByUserId } = parsed;
 
   const summary = receipt
     ? computeSummary(myUserId, participants ?? [], receipt, claims ?? [])
     : null;
+
+  const payer = (participants ?? []).find((p) => p.user_id === paidByUserId) ?? null;
+  const iAmPayer = !!payer && payer.user_id === myUserId;
+
+  async function handlePayViaVenmo() {
+    if (!payer || !summary) return;
+    if (!payer.venmo_username) {
+      Alert.alert(
+        'No Venmo username',
+        `${payer.display_name} hasn’t added a Venmo username yet.`
+      );
+      return;
+    }
+    const note = `${receipt?.merchant_name ?? 'Split It'} – my share`;
+    const url = buildVenmoUrl(payer.venmo_username, summary.myTotal, note);
+    const supported = await Linking.canOpenURL(url);
+    if (!supported) {
+      Alert.alert('Cannot open Venmo', 'Venmo may not be installed on this device.');
+      return;
+    }
+    Linking.openURL(url);
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -110,11 +172,12 @@ export default function SessionSummaryScreen() {
                   <View key={i} style={styles.lineRow}>
                     <View style={styles.lineLeft}>
                       <Text style={styles.lineName}>{item.name}</Text>
-                      {item.claimantCount > 1 && (
-                        <Text style={styles.lineSub}>
-                          ${item.lineTotal.toFixed(2)} ÷ {item.claimantCount}
-                        </Text>
-                      )}
+                      <Text style={styles.lineSub}>
+                        {item.myUnits === item.totalQty
+                          ? `all ${item.totalQty}`
+                          : `${item.myUnits} of ${item.totalQty}`}
+                        {' · '}${item.lineTotal.toFixed(2)} total
+                      </Text>
                     </View>
                     <Text style={styles.lineAmount}>${item.myShare.toFixed(2)}</Text>
                   </View>
@@ -148,9 +211,58 @@ export default function SessionSummaryScreen() {
 
             {/* Grand total */}
             <View style={styles.totalCard}>
-              <Text style={styles.totalLabel}>You owe</Text>
+              <Text style={styles.totalLabel}>
+                {iAmPayer ? 'You paid' : 'You owe'}
+              </Text>
               <Text style={styles.totalAmount}>${summary.myTotal.toFixed(2)}</Text>
             </View>
+
+            {/* Payment action */}
+            {payer && iAmPayer && payer.venmo_username && (
+              <View style={styles.payerBanner}>
+                <Text style={styles.payerBannerTitle}>You paid the bill</Text>
+                <Text style={styles.payerBannerSub}>
+                  Friends will send you their share via Venmo @{payer.venmo_username}.
+                </Text>
+              </View>
+            )}
+
+            {payer && iAmPayer && !payer.venmo_username && (
+              <TouchableOpacity
+                style={styles.nudgeBanner}
+                onPress={() => router.push('/settings')}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.nudgeTitle}>Add your Venmo to get paid</Text>
+                <Text style={styles.nudgeSub}>
+                  Friends can’t send you their share until you add a Venmo username. Tap to add it now.
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {payer && !iAmPayer && summary.myTotal > 0 && (
+              payer.venmo_username ? (
+                <TouchableOpacity
+                  style={styles.venmoBtn}
+                  onPress={handlePayViaVenmo}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.venmoBtnTitle}>
+                    Pay {payer.display_name} ${summary.myTotal.toFixed(2)}
+                  </Text>
+                  <Text style={styles.venmoBtnSub}>via Venmo</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.venmoWarn}>
+                  <Text style={styles.venmoWarnTitle}>
+                    Pay {payer.display_name} ${summary.myTotal.toFixed(2)}
+                  </Text>
+                  <Text style={styles.venmoWarnSub}>
+                    {payer.display_name} hasn’t added a Venmo username.
+                  </Text>
+                </View>
+              )
+            )}
           </>
         ) : (
           <Text style={styles.errorText}>Could not compute summary.</Text>
@@ -280,5 +392,91 @@ const styles = StyleSheet.create({
     color: T.muted,
     textAlign: 'center',
     marginTop: 40,
+  },
+  payerBanner: {
+    backgroundColor: 'rgba(0,232,150,0.08)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(0,232,150,0.30)',
+    padding: 16,
+    marginBottom: 16,
+  },
+  payerBannerTitle: {
+    fontSize: 15,
+    fontFamily: F.bold,
+    color: GREEN,
+    marginBottom: 4,
+  },
+  payerBannerSub: {
+    fontSize: 13,
+    fontFamily: F.regular,
+    color: T.secondary,
+    lineHeight: 18,
+  },
+  venmoBtn: {
+    backgroundColor: '#3D95CE',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#3D95CE',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  venmoBtnTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: F.bold,
+    letterSpacing: 0.3,
+  },
+  venmoBtnSub: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 12,
+    fontFamily: F.medium,
+    marginTop: 2,
+    letterSpacing: 0.5,
+  },
+  nudgeBanner: {
+    backgroundColor: WARN.bg,
+    borderWidth: 1,
+    borderColor: WARN.border,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 16,
+  },
+  nudgeTitle: {
+    fontSize: 15,
+    fontFamily: F.bold,
+    color: WARN.text,
+    marginBottom: 4,
+  },
+  nudgeSub: {
+    fontSize: 13,
+    fontFamily: F.regular,
+    color: T.secondary,
+    lineHeight: 18,
+  },
+  venmoWarn: {
+    backgroundColor: WARN.bg,
+    borderWidth: 1,
+    borderColor: WARN.border,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  venmoWarnTitle: {
+    color: T.primary,
+    fontSize: 15,
+    fontFamily: F.bold,
+    marginBottom: 4,
+  },
+  venmoWarnSub: {
+    color: WARN.text,
+    fontSize: 13,
+    fontFamily: F.regular,
+    textAlign: 'center',
   },
 });

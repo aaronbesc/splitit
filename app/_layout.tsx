@@ -43,6 +43,8 @@ function RootLayoutNav() {
       <Stack.Screen name="session-claim" options={{ headerShown: false }} />
       <Stack.Screen name="session-summary" options={{ headerShown: false }} />
       <Stack.Screen name="join/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="settings" options={{ headerShown: false }} />
+      <Stack.Screen name="debts" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
     </Stack>
   );
