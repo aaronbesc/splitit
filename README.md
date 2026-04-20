@@ -2,7 +2,7 @@
 
 **Scan a receipt. Claim your items. Settle up in seconds.**
 
-Split It is a mobile app that turns the worst part of a group dinner — figuring out who owes what — into a 30-second live session. Point your camera at the receipt, invite friends via QR, everyone taps what they had, and Venmo does the rest.
+Split It is a mobile app that turns the worst part of a group dinner (figuring out who owes what) into a 30-second live session. Point your camera at the receipt, invite friends via QR, everyone taps what they had, and Venmo does the rest.
 
 Built for **CIS 4914: Senior Project** at the University of Florida.
 
@@ -24,13 +24,13 @@ Splitting a bill by hand is slow, awkward, and almost always wrong by a dollar o
 
 ## Features
 
-- **Receipt OCR** — snap a photo, get a parsed itemized list
-- **Live sessions** — host generates a QR; guests join in one tap
-- **Real-time claiming** — watch claims update live across every phone
-- ½ **Half-unit splits** — share a margarita without spreadsheet math
-- **Venmo handoff** — one-tap deep link into Venmo with the right amount pre-filled
-- **Debts ledger** — aggregate what you owe and what's owed to you across sessions
-- **Dark-first design** — custom design system, Space Grotesk, glassmorphic cards
+- **Receipt OCR**: snap a photo, get a parsed itemized list
+- **Live sessions**: host generates a QR; guests join in one tap
+- **Real-time claiming**: watch claims update live across every phone
+- ½ **Half-unit splits**: share a margarita without spreadsheet math
+- **Venmo handoff**: one-tap deep link into Venmo with the right amount pre-filled
+- **Debts ledger**: aggregate what you owe and what's owed to you across sessions
+- **Dark-first design**: custom design system, Space Grotesk, glassmorphic cards
 
 ---
 
@@ -63,10 +63,10 @@ Splitting a bill by hand is slow, awkward, and almost always wrong by a dollar o
                     (generated on finish)
 ```
 
-- **`app/`** — Expo Router screens (file-based routing)
-- **`services/`** — Supabase data access (`sessionService`, `debtsService`, `receiptService`, `splitCalc`)
-- **`context/auth.tsx`** — session provider + auto-redirect logic
-- **`constants/design.ts`** — single source of truth for colors and typography
+- **`app/`**: expo Router screens (file-based routing)
+- **`services/`**: supabase data access (`sessionService`, `debtsService`, `receiptService`, `splitCalc`)
+- **`context/auth.tsx`**: session provider + auto-redirect logic
+- **`constants/design.ts`**: single source of truth for colors and typography
 
 ---
 
@@ -98,11 +98,11 @@ Scan the QR with Expo Go (or run `npm run ios` / `npm run android` for a dev bui
 
 Five core tables, all with RLS enabled and Realtime enabled where it matters:
 
-- `receipts` — parsed receipt snapshot (items, subtotal, tax, tip)
-- `sessions` — live-split session metadata (host, join code, payer)
-- `session_participants` — who's in, with a Venmo snapshot
-- `item_claims` — who claimed what, with fractional `units`
-- `debts` — denormalized ledger generated on session finish
+- `receipts`: parsed receipt snapshot (items, subtotal, tax, tip)
+- `sessions`: live-split session metadata (host, join code, payer)
+- `session_participants`: who's in, with a Venmo snapshot
+- `item_claims`: who claimed what, with fractional `units`
+- `debts`: denormalized ledger generated on session finish
 
 Schema and policies live in `/supabase/schema.sql`.
 
@@ -110,7 +110,7 @@ Schema and policies live in `/supabase/schema.sql`.
 
 ## Project status
 
-**Shipped and demoable.** Core flow works end-to-end: scan → session → claim → Venmo payout → ledger.
+**Shipped and demoable.** Core flow works end-to-end: scan -> session -> claim -> Venmo payout -> ledger.
 
 Known limitations and backlog live in the project's GitHub Issues.
 
