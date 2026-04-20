@@ -1,65 +1,139 @@
-# Welcome to your Expo app 👋
+# Split It
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Scan a receipt. Claim your items. Settle up in seconds.**
 
-## Get started
+Split It is a mobile app that turns the worst part of a group dinner — figuring out who owes what — into a 30-second live session. Point your camera at the receipt, invite friends via QR, everyone taps what they had, and Venmo does the rest.
 
-To start the app, in your terminal run:
+Built for **CIS 4914: Senior Project** at the University of Florida.
+
+---
+
+## Demo
+
+**Final presentation:** _link pending_
+
+<!-- Drop a hero screenshot or GIF here once you record one -->
+
+---
+
+## Why we built it
+
+Splitting a bill by hand is slow, awkward, and almost always wrong by a dollar or two. Existing apps make you type every line item. We wanted something that feels like opening the camera — scan, tap, done — with live multi-user sessions so nobody has to read the receipt out loud.
+
+---
+
+## Features
+
+- **Receipt OCR** — snap a photo, get a parsed itemized list
+- **Live sessions** — host generates a QR; guests join in one tap
+- **Real-time claiming** — watch claims update live across every phone
+- ½ **Half-unit splits** — share a margarita without spreadsheet math
+- **Venmo handoff** — one-tap deep link into Venmo with the right amount pre-filled
+- **Debts ledger** — aggregate what you owe and what's owed to you across sessions
+- **Dark-first design** — custom design system, Space Grotesk, glassmorphic cards
+
+---
+
+## Tech stack
+
+| Layer | Tech |
+|---|---|
+| App | React Native (Expo SDK 54), Expo Router, TypeScript |
+| Auth & DB | Supabase (Postgres + RLS + Realtime) |
+| OCR | Gemini 2.0 Flash (vision) + Tesseract.js fallback |
+| Payments | Venmo deep links (`venmo://`) |
+| Styling | Custom dark design system, Space Grotesk |
+
+---
+
+## Architecture at a glance
+
+```
+┌───────────────┐        Supabase Realtime         ┌───────────────┐
+│  Host device  │◄────── item_claims channel ─────►│ Guest devices │
+│ (creates      │                                  │ (claim items) │
+│  session)     │◄────── sessions channel ────────►│               │
+└──────┬────────┘                                  └───────┬───────┘
+       │                                                   │
+       └──────────────► Supabase Postgres ◄────────────────┘
+                        (RLS-protected)
+                              │
+                              ▼
+                         debts table
+                    (generated on finish)
+```
+
+- **`app/`** — Expo Router screens (file-based routing)
+- **`services/`** — Supabase data access (`sessionService`, `debtsService`, `receiptService`, `splitCalc`)
+- **`context/auth.tsx`** — session provider + auto-redirect logic
+- **`constants/design.ts`** — single source of truth for colors and typography
+
+---
+
+## Quickstart
+
+**Prereqs:** Node 20+, a Supabase project, a Gemini API key, Expo Go or a dev build.
 
 ```bash
+# 1. Install
+npm install
+
+# 2. Configure env (copy and fill in)
+cp .env.example .env.local
+#   EXPO_PUBLIC_SUPABASE_URL=...
+#   EXPO_PUBLIC_SUPABASE_ANON_KEY=...
+#   EXPO_PUBLIC_GEMINI_API_KEY=...
+
+# 3. Run the Supabase migrations (see /supabase/schema.sql)
+
+# 4. Start
 npm run start
 ```
 
-In the output, you'll find options to open the app in:
+Scan the QR with Expo Go (or run `npm run ios` / `npm run android` for a dev build).
 
-- [a development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [an Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [an iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Database
 
-## Workflows
+Five core tables, all with RLS enabled and Realtime enabled where it matters:
 
-This project is configured to use [EAS Workflows](https://docs.expo.dev/eas/workflows/get-started/) to automate some development and release processes. These commands are set up in [`package.json`](./package.json) and can be run using NPM scripts in your terminal.
+- `receipts` — parsed receipt snapshot (items, subtotal, tax, tip)
+- `sessions` — live-split session metadata (host, join code, payer)
+- `session_participants` — who's in, with a Venmo snapshot
+- `item_claims` — who claimed what, with fractional `units`
+- `debts` — denormalized ledger generated on session finish
 
-### Previews
+Schema and policies live in `/supabase/schema.sql`.
 
-Run `npm run draft` to [publish a preview update](https://docs.expo.dev/eas/workflows/examples/publish-preview-update/) of your project, which can be viewed in Expo Go or in a development build.
+---
 
-### Development Builds
+## Project status
 
-Run `npm run development-builds` to [create a development build](https://docs.expo.dev/eas/workflows/examples/create-development-builds/). Note - you'll need to follow the [Prerequisites](https://docs.expo.dev/eas/workflows/examples/create-development-builds/#prerequisites) to ensure you have the correct emulator setup on your machine.
+**Shipped and demoable.** Core flow works end-to-end: scan → session → claim → Venmo payout → ledger.
 
-### Production Deployments
+Known limitations and backlog live in the project's GitHub Issues.
 
-Run `npm run deploy` to [deploy to production](https://docs.expo.dev/eas/workflows/examples/deploy-to-production/). Note - you'll need to follow the [Prerequisites](https://docs.expo.dev/eas/workflows/examples/deploy-to-production/#prerequisites) to ensure you're set up to submit to the Apple and Google stores.
+---
 
-## Hosting
+## Team
 
-Expo offers hosting for websites and API functions via EAS Hosting. See the [Getting Started](https://docs.expo.dev/eas/hosting/get-started/) guide to learn more.
+Built by **GatorML** for CIS 4914 - Senior Project, Spring 2026.
 
+| Name | Role |
+|---|---|
+| Aaron Beschorner | Software Engineer |
+| Eva Nastevska | Machine Learning Engineer |
 
-## Get a fresh project
+**Advisors:** Dr. Jie Xu · Yuanzhe Peng (PhD candidate)
+**Course instructor:** Dr. Sanethia Thomas
 
-When you're ready, run:
+---
 
-```bash
-npm run reset-project
-```
+## Acknowledgments
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Thanks to our faculty advisors Dr. Jie Xu and Yuanzhe Peng for weekly guidance, and to Dr. Sanethia Thomas for running CIS 4914. Thanks also to the Expo, Supabase, and React Native communities for the tooling that made a two-semester project feel tractable.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+**Keywords:** mobile, React Native, Expo, Supabase, real-time, OCR, bill splitting, fintech, Venmo, group payments
